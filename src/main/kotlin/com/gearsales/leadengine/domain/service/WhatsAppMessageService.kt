@@ -14,9 +14,9 @@ object WhatsAppMessageService {
         val cidadeTrim = cidade?.trim()?.takeIf { it.isNotEmpty() }
 
         val primeiraParte = if (cidadeTrim != null) {
-            "Vi a $nome aqui de $cidadeTrim e resolvi entrar em contato porque estou selecionando algumas lojas para testar gratuitamente uma plataforma que estou desenvolvendo para gestão de estoque, anúncios e operação da loja."
+            "Vi a $nome aqui de $cidadeTrim e resolvi entrar em contato porque estou selecionando algumas lojas para testar gratuitamente uma ferramenta que estou desenvolvendo para ajudar a organizar melhor a operação da loja."
         } else {
-            "Vi a $nome e resolvi entrar em contato porque estou selecionando algumas lojas para testar gratuitamente uma plataforma que estou desenvolvendo para gestão de estoque, anúncios e operação da loja."
+            "Vi a $nome e resolvi entrar em contato porque estou selecionando algumas lojas para testar gratuitamente uma ferramenta que estou desenvolvendo para ajudar a organizar melhor a operação da loja."
         }
 
         return buildString {
@@ -24,9 +24,9 @@ object WhatsAppMessageService {
             appendLine()
             appendLine(primeiraParte)
             appendLine()
-            appendLine("A ideia agora não é vender, e sim acompanhar poucas lojas de perto para evoluir o sistema com feedback real.")
+            appendLine("Estou acompanhando poucas lojas de perto justamente para evoluir a plataforma com feedback real, lado a lado com quem está usando.")
             appendLine()
-            appendLine("Se fizer sentido, posso te mostrar rapidinho.")
+            appendLine("Se fizer sentido, posso te mostrar rapidinho. É *gratuito e sem compromisso*")
         }.trimEnd()
     }
 
