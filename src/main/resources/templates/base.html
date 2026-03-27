@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:fragment="head">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${title}">Gear Lead Engine</title>
+    <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+<header th:fragment="header">
+    <div class="brand">Gear Lead Engine</div>
+</header>
+<nav th:fragment="nav">
+    <a href="/">Dashboard</a>
+    <a href="/import">Importação</a>
+    <a href="/leads">Leads</a>
+    <a href="/batches">Lotes</a>
+</nav>
+</body>
+</html>

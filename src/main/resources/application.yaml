@@ -1,0 +1,9 @@
+ktor:
+  deployment:
+    port: 8081
+  application:
+    modules:
+      - com.gearsales.leadengine.ApplicationKt.module
+
+storage:
+  sqlitePath: "./data/lead-engine.db"
