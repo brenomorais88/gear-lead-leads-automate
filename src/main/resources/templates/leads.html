@@ -48,8 +48,13 @@
                 </thead>
                 <tbody>
                 <tr th:each="lead : ${leads}">
-                    <td th:text="${lead.id}">0</td>
-                    <td th:text="${lead.nomeFantasia != null and not lead.nomeFantasia.isEmpty() ? lead.nomeFantasia : lead.razaoSocial}">-</td>
+                    <td>
+                        <a class="leads-row-link" th:href="|/lead/${lead.id}|" th:text="${lead.id}">0</a>
+                    </td>
+                    <td>
+                        <a class="leads-row-link" th:href="|/lead/${lead.id}|"
+                           th:text="${lead.nomeFantasia != null and not lead.nomeFantasia.isEmpty() ? lead.nomeFantasia : lead.razaoSocial}">-</a>
+                    </td>
                     <td>
                         <span th:text="${lead.cidade}">-</span>
                         <span th:if="${lead.cidade != null and not lead.cidade.isEmpty() and lead.estado != null and not lead.estado.isEmpty()}"> / </span>

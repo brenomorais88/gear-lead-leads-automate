@@ -1,5 +1,7 @@
 package com.gearsales.leadengine.domain.model
 
+import java.time.LocalDateTime
+
 data class LeadRecord(
     val id: Long,
     val cnpj: String,
@@ -21,4 +23,12 @@ data class LeadRecord(
     val score: Int,
     val prioridade: String,
     val status: String,
+    val jaFoiSorteado: Boolean,
+    val primeiroSorteioEm: LocalDateTime?,
+    val quantidadeTentativas: Int,
+    val respondeu: Boolean,
+    val interessado: Boolean,
+    val observacoes: String?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
 )

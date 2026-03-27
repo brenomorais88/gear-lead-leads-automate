@@ -6,45 +6,89 @@
 <nav th:replace="~{base :: nav}"></nav>
 <main class="batch-detail-main">
     <section>
+        <p class="batch-detail-back"><a href="/batches">← Voltar aos lotes</a></p>
         <h1 th:text="${title}">Lote</h1>
 
         <dl class="batch-meta" th:if="${batch != null}">
-            <div><dt>ID</dt><dd th:text="${batch.id}">0</dd></div>
+            <div><dt>ID do lote</dt><dd th:text="${batch.id}">0</dd></div>
             <div><dt>Criado em</dt><dd th:text="${batch.createdAt}">-</dd></div>
-            <div><dt>Total no lote</dt><dd th:text="${batch.totalLeads}">0</dd></div>
+            <div><dt>Total de leads</dt><dd th:text="${batch.totalLeads}">0</dd></div>
         </dl>
 
-        <div class="table-wrap" th:if="${leads != null and !leads.isEmpty()}">
-            <table class="preview-table">
+        <h2 class="batch-ops-title">Leads do lote</h2>
+        <div class="table-wrap batch-ops-table-wrap" th:if="${batch != null and !batch.leads.isEmpty()}">
+            <table class="preview-table batch-ops-table">
                 <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nome</th>
+                    <th>Loja</th>
                     <th>Cidade / UF</th>
-                    <th>Telefone (WhatsApp)</th>
+                    <th>WhatsApp</th>
+                    <th>CNAE</th>
                     <th>Score</th>
-                    <th>Prioridade</th>
+                    <th>Prio.</th>
                     <th>Status</th>
+                    <th>Ações</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="lead : ${leads}">
+                <tr th:each="lead : ${batch.leads}" th:with="returnTo=|/batches/${batch.id}|">
                     <td th:text="${lead.id}">0</td>
-                    <td th:text="${lead.nomeFantasia != null and not lead.nomeFantasia.isEmpty() ? lead.nomeFantasia : lead.razaoSocial}">-</td>
+                    <td th:text="${lead.nomeLoja}">-</td>
                     <td>
                         <span th:text="${lead.cidade}">-</span>
                         <span th:if="${lead.cidade != null and not lead.cidade.isEmpty() and lead.estado != null and not lead.estado.isEmpty()}"> / </span>
                         <span th:text="${lead.estado}"></span>
                     </td>
                     <td th:text="${lead.telefoneNormalizado}">-</td>
+                    <td th:text="${lead.cnae}">-</td>
                     <td th:text="${lead.score}">0</td>
                     <td th:text="${lead.prioridade}">-</td>
                     <td th:text="${lead.status}">-</td>
+                    <td class="batch-actions-cell">
+                        <div class="batch-actions-row">
+                            <a class="button button-small" th:href="${lead.detailUrl}">Detalhe</a>
+                            <a th:if="${lead.hasWhatsApp}" class="button button-small" th:href="${lead.whatsappLink}"
+                               target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                        </div>
+                        <div class="batch-status-forms">
+                            <form method="post" th:action="|/leads/${lead.id}/status|" class="batch-status-form">
+                                <input type="hidden" name="status" value="CONTATADO"/>
+                                <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+                                <button type="submit" class="button button-tiny">Contatado</button>
+                            </form>
+                            <form method="post" th:action="|/leads/${lead.id}/status|" class="batch-status-form">
+                                <input type="hidden" name="status" value="RESPONDEU"/>
+                                <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+                                <button type="submit" class="button button-tiny">Respondeu</button>
+                            </form>
+                            <form method="post" th:action="|/leads/${lead.id}/status|" class="batch-status-form">
+                                <input type="hidden" name="status" value="INTERESSADO"/>
+                                <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+                                <button type="submit" class="button button-tiny">Interessado</button>
+                            </form>
+                            <form method="post" th:action="|/leads/${lead.id}/status|" class="batch-status-form">
+                                <input type="hidden" name="status" value="SEM_RESPOSTA"/>
+                                <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+                                <button type="submit" class="button button-tiny">Sem resposta</button>
+                            </form>
+                            <form method="post" th:action="|/leads/${lead.id}/status|" class="batch-status-form">
+                                <input type="hidden" name="status" value="SEM_INTERESSE"/>
+                                <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+                                <button type="submit" class="button button-tiny">Sem interesse</button>
+                            </form>
+                            <form method="post" th:action="|/leads/${lead.id}/status|" class="batch-status-form">
+                                <input type="hidden" name="status" value="NUMERO_INVALIDO"/>
+                                <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+                                <button type="submit" class="button button-tiny">Nº inválido</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
-        <p th:if="${leads == null or leads.isEmpty()}">Nenhum lead neste lote.</p>
+        <p th:if="${batch == null or batch.leads.isEmpty()}">Nenhum lead neste lote.</p>
     </section>
 </main>
 </body>

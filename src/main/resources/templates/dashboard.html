@@ -20,6 +20,10 @@
             <div><dt>Restantes para sorteio</dt><dd th:text="${stats.restantesParaSorteio}">0</dd></div>
         </dl>
 
+        <p class="dashboard-last-batch" th:if="${lastBatchId > 0}">
+            <a th:href="|/batches/${lastBatchId}|" class="button button-secondary">Abrir último lote gerado</a>
+        </p>
+
         <form method="post" action="/batches/generate" class="dashboard-generate">
             <button type="submit" class="button">Gerar lote de 20 leads</button>
         </form>

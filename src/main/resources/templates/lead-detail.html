@@ -4,10 +4,183 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
-<main>
+<main class="lead-detail-main">
     <section>
+        <p class="lead-detail-back"><a href="/leads">← Voltar à lista de leads</a></p>
         <h1 th:text="${title}">Lead</h1>
-        <p>Página em construção.</p>
+
+        <p class="flash-msg" th:if="${error == 'razao'}">Informe a razão social.</p>
+        <p class="flash-msg" th:if="${error == 'status'}">Status inválido.</p>
+
+        <div class="lead-detail-readonly">
+            <h2>Operacional</h2>
+            <dl class="lead-detail-dl">
+                <div><dt>Score</dt><dd th:text="${lead.score}">0</dd></div>
+                <div><dt>Prioridade</dt><dd th:text="${lead.prioridade}">-</dd></div>
+                <div><dt>Status</dt><dd th:text="${lead.status}">-</dd></div>
+                <div><dt>Já foi sorteado</dt><dd th:text="${lead.jaFoiSorteado} ? 'Sim' : 'Não'">-</dd></div>
+                <div><dt>Primeiro sorteio em</dt><dd th:text="${lead.primeiroSorteioEm.isEmpty()} ? '—' : lead.primeiroSorteioEm">—</dd></div>
+                <div><dt>Tentativas</dt><dd th:text="${lead.quantidadeTentativas}">0</dd></div>
+                <div><dt>Respondeu</dt><dd th:text="${lead.respondeu} ? 'Sim' : 'Não'">-</dd></div>
+                <div><dt>Interessado</dt><dd th:text="${lead.interessado} ? 'Sim' : 'Não'">-</dd></div>
+                <div><dt>Criado em</dt><dd th:text="${lead.createdAt}">-</dd></div>
+                <div><dt>Atualizado em</dt><dd th:text="${lead.updatedAt}">-</dd></div>
+            </dl>
+        </div>
+
+        <div class="lead-whatsapp-section">
+            <h2>Prospecção (WhatsApp)</h2>
+            <pre id="whatsapp-msg-preview" class="whatsapp-preview" th:text="${lead.whatsappMessage}"></pre>
+            <p class="lead-detail-hint" th:if="${!lead.hasWhatsApp}">Inclua um telefone válido no cadastro para habilitar o link direto do WhatsApp.</p>
+            <div class="lead-whatsapp-actions">
+                <a th:if="${lead.hasWhatsApp}" th:href="${lead.whatsappLink}" target="_blank" rel="noopener noreferrer"
+                   class="button">Abrir WhatsApp</a>
+                <button type="button" class="button button-secondary" onclick="copyWhatsAppMessage()">Copiar mensagem</button>
+            </div>
+        </div>
+        <script>
+            function copyWhatsAppMessage() {
+                var el = document.getElementById('whatsapp-msg-preview');
+                if (!el) return;
+                var text = el.innerText || el.textContent || '';
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).catch(function () {
+                        fallbackCopyWhatsApp(text);
+                    });
+                } else {
+                    fallbackCopyWhatsApp(text);
+                }
+            }
+            function fallbackCopyWhatsApp(text) {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                } catch (e) {
+                }
+                document.body.removeChild(ta);
+            }
+        </script>
+
+        <div class="lead-status-section">
+            <h2>Status</h2>
+            <p class="lead-detail-hint">Ações rápidas (sem nota):</p>
+            <div class="lead-status-quick">
+                <form th:each="st : ${statusOptions}" method="post" th:action="|/lead/${lead.id}/status|" class="lead-status-quick-form">
+                    <input type="hidden" name="status" th:value="${st}"/>
+                    <button type="submit" class="button button-small" th:text="${st}">NOVO</button>
+                </form>
+            </div>
+            <form method="post" th:action="|/lead/${lead.id}/status|" class="lead-status-form">
+                <div class="lead-form-grid">
+                    <label>Status
+                        <select name="status">
+                            <option th:each="st : ${statusOptions}" th:value="${st}" th:text="${st}"
+                                    th:selected="${st == lead.status}">NOVO</option>
+                        </select>
+                    </label>
+                    <label class="lead-form-full">Nota (opcional)
+                        <textarea name="note" rows="2" placeholder="Detalhes da interação"></textarea>
+                    </label>
+                </div>
+                <button type="submit" class="button">Salvar status</button>
+            </form>
+        </div>
+
+        <div class="lead-history-section">
+            <h2>Histórico</h2>
+            <div class="table-wrap" th:if="${!interactions.isEmpty()}">
+                <table class="preview-table lead-history-table">
+                    <thead>
+                    <tr>
+                        <th>Data/hora</th>
+                        <th>Tipo</th>
+                        <th>Resultado</th>
+                        <th>Nota</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="it : ${interactions}">
+                        <td th:text="${it.createdAt}">-</td>
+                        <td th:text="${it.tipo}">-</td>
+                        <td th:text="${it.resultado}">-</td>
+                        <td class="lead-history-note" th:text="${it.nota}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p th:if="${interactions.isEmpty()}">Nenhum registro no histórico.</p>
+        </div>
+
+        <form class="lead-edit-form" method="post" th:action="|/lead/${lead.id}/edit|">
+            <h2>Empresa</h2>
+            <div class="lead-form-grid">
+                <label>CNPJ <input type="text" th:value="${lead.cnpj}" readonly="readonly" disabled="disabled"/></label>
+                <label>Razão social *
+                    <input type="text" name="razaoSocial" required="required" th:value="${lead.razaoSocial}"/>
+                </label>
+                <label>Nome fantasia
+                    <input type="text" name="nomeFantasia" th:value="${lead.nomeFantasia}"/>
+                </label>
+                <label>CNAE
+                    <input type="text" name="cnae" th:value="${lead.cnae}"/>
+                </label>
+                <label>Situação
+                    <input type="text" name="situacao" th:value="${lead.situacao}"/>
+                </label>
+                <label>Porte
+                    <input type="text" name="porte" th:value="${lead.porte}"/>
+                </label>
+                <label>Capital social
+                    <input type="text" name="capitalSocial" th:value="${lead.capitalSocial}"/>
+                </label>
+                <label>Tipo
+                    <input type="text" name="tipo" th:value="${lead.tipo}"/>
+                </label>
+                <label class="lead-form-full">Sócio
+                    <textarea name="socio" rows="2" th:text="${lead.socio}"></textarea>
+                </label>
+                <label>Data de abertura
+                    <input type="text" name="dataAbertura" th:value="${lead.dataAbertura}"/>
+                </label>
+            </div>
+
+            <h2>Contato</h2>
+            <div class="lead-form-grid">
+                <label>Telefone (edição recalcula WhatsApp)
+                    <input type="text" name="telefoneOriginal" th:value="${lead.telefoneOriginal}"/>
+                </label>
+                <label>Telefone normalizado (somente leitura)
+                    <input type="text" th:value="${lead.telefoneNormalizado}" readonly="readonly" disabled="disabled"/>
+                </label>
+                <label>E-mail
+                    <input type="text" name="email" th:value="${lead.email}"/>
+                </label>
+                <label class="lead-form-full">Endereço
+                    <textarea name="endereco" rows="2" th:text="${lead.endereco}"></textarea>
+                </label>
+                <label>Cidade
+                    <input type="text" name="cidade" th:value="${lead.cidade}"/>
+                </label>
+                <label>Estado
+                    <input type="text" name="estado" th:value="${lead.estado}"/>
+                </label>
+            </div>
+
+            <h2>Observações</h2>
+            <p class="lead-detail-hint">Texto atual (editável abaixo):</p>
+            <label class="lead-form-full">
+                <textarea name="observacoes" rows="4" th:text="${lead.observacoes}"></textarea>
+            </label>
+
+            <p class="lead-detail-hint">Ao salvar, telefone normalizado, score e prioridade são recalculados automaticamente. Alterações geram registro no histórico.</p>
+            <button type="submit" class="button">Salvar alterações</button>
+        </form>
     </section>
 </main>
 </body>

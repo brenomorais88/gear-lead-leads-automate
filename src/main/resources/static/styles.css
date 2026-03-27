@@ -182,6 +182,15 @@ button {
     font-size: 0.8rem;
 }
 
+a.leads-row-link {
+    color: #1e3a5f;
+    text-decoration: none;
+}
+
+a.leads-row-link:hover {
+    text-decoration: underline;
+}
+
 .dashboard-main {
     max-width: 48rem;
 }
@@ -223,6 +232,64 @@ button {
     max-width: 72rem;
 }
 
+.batch-detail-back {
+    margin: 0 0 0.75rem;
+}
+
+.batch-detail-back a {
+    color: #1e3a5f;
+    text-decoration: none;
+}
+
+.batch-detail-back a:hover {
+    text-decoration: underline;
+}
+
+.batch-ops-title {
+    font-size: 1.05rem;
+    margin: 1.25rem 0 0.5rem;
+}
+
+.batch-ops-table-wrap {
+    overflow-x: auto;
+}
+
+.batch-ops-table {
+    font-size: 0.75rem;
+    white-space: normal;
+}
+
+.batch-actions-cell {
+    min-width: 14rem;
+    vertical-align: top;
+}
+
+.batch-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.4rem;
+}
+
+.batch-status-forms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.batch-status-form {
+    margin: 0;
+}
+
+.button-tiny {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.68rem;
+}
+
+.dashboard-last-batch {
+    margin: 1rem 0 0.5rem;
+}
+
 .batch-meta {
     display: flex;
     flex-wrap: wrap;
@@ -242,4 +309,162 @@ button {
 
 .batch-meta dd {
     margin: 0.15rem 0 0;
+}
+
+.lead-detail-main {
+    max-width: 52rem;
+}
+
+.lead-detail-back {
+    margin: 0 0 0.75rem;
+}
+
+.lead-detail-back a {
+    color: #1e3a5f;
+    text-decoration: none;
+}
+
+.lead-detail-back a:hover {
+    text-decoration: underline;
+}
+
+.lead-detail-readonly {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.lead-detail-readonly h2,
+.lead-edit-form h2 {
+    font-size: 1.05rem;
+    margin: 1rem 0 0.5rem;
+}
+
+.lead-detail-dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.5rem 1rem;
+    margin: 0;
+}
+
+.lead-detail-dl div {
+    margin: 0;
+}
+
+.lead-detail-dl dt {
+    font-size: 0.8rem;
+    color: #555;
+    margin: 0;
+}
+
+.lead-detail-dl dd {
+    margin: 0.1rem 0 0;
+    font-weight: 500;
+}
+
+.lead-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.65rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.lead-form-grid label,
+.lead-edit-form > label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    gap: 0.25rem;
+}
+
+.lead-form-full {
+    grid-column: 1 / -1;
+}
+
+.lead-form-grid input:not([readonly]),
+.lead-form-grid textarea,
+.lead-edit-form textarea {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.lead-detail-hint {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.lead-whatsapp-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.whatsapp-preview {
+    margin: 0.5rem 0 1rem;
+    padding: 0.75rem 1rem;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.lead-whatsapp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.button-secondary {
+    background: #fff;
+    color: #1e3a5f;
+}
+
+.lead-status-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.lead-status-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.lead-status-quick-form {
+    margin: 0;
+}
+
+.button-small {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.75rem;
+}
+
+.lead-status-form {
+    margin-top: 0.5rem;
+}
+
+.lead-history-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.lead-history-table {
+    font-size: 0.8rem;
+    white-space: normal;
+}
+
+.lead-history-note {
+    max-width: 18rem;
+    white-space: pre-wrap;
+    word-break: break-word;
 }

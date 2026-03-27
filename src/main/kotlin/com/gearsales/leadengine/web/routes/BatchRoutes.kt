@@ -3,6 +3,7 @@ package com.gearsales.leadengine.web.routes
 import com.gearsales.leadengine.database.repositories.BatchRepository
 import com.gearsales.leadengine.database.repositories.LeadRepository
 import com.gearsales.leadengine.domain.service.DailyBatchService
+import com.gearsales.leadengine.web.viewmodels.BatchLeadRowViewModel
 import com.gearsales.leadengine.web.viewmodels.DailyBatchViewModel
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
@@ -61,11 +62,13 @@ fun Route.batchRoutes() {
             return@get
         }
         val leadIds = batchRepository.findLeadIdsForBatch(id)
-        val leads = batchLeadRepository.findByIdsOrdered(leadIds)
+        val leadRecords = batchLeadRepository.findByIdsOrdered(leadIds)
+        val leadRows = leadRecords.map { BatchLeadRowViewModel.from(it) }
         val batchVm = DailyBatchViewModel(
             id = row.id,
             createdAt = row.createdAt.format(batchDateFmt),
             totalLeads = row.totalLeads,
+            leads = leadRows,
         )
         call.respond(
             ThymeleafContent(
@@ -73,7 +76,6 @@ fun Route.batchRoutes() {
                 mapOf(
                     "title" to "Lote #$id",
                     "batch" to batchVm,
-                    "leads" to leads,
                 ),
             ),
         )

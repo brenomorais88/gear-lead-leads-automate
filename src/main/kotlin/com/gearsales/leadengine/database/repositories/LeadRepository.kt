@@ -154,6 +154,70 @@ class LeadRepository {
         }
     }
 
+    fun updateLeadStatus(id: Long, newStatus: LeadStatus): Boolean = dbQuery {
+        val row = LeadsTable.selectAll().where { LeadsTable.id eq id }.firstOrNull() ?: return@dbQuery false
+        val currentTentativas = row[LeadsTable.quantidadeTentativas]
+        val now = LocalDateTime.now()
+        LeadsTable.update({ LeadsTable.id eq id }) {
+            it[status] = newStatus.name
+            it[updatedAt] = now
+            when (newStatus) {
+                LeadStatus.CONTATADO -> it[quantidadeTentativas] = currentTentativas + 1
+                LeadStatus.RESPONDEU -> it[respondeu] = true
+                LeadStatus.INTERESSADO -> it[interessado] = true
+                LeadStatus.SEM_INTERESSE -> it[interessado] = false
+                else -> Unit
+            }
+        }
+        true
+    }
+
+    fun updateManualEdit(
+        id: Long,
+        razaoSocial: String,
+        nomeFantasia: String?,
+        telefoneOriginal: String?,
+        telefoneNormalizado: String?,
+        email: String?,
+        endereco: String?,
+        cidade: String?,
+        estado: String?,
+        dataAbertura: String?,
+        cnae: String?,
+        situacao: String?,
+        porte: String?,
+        socio: String?,
+        capitalSocial: String?,
+        tipo: String?,
+        observacoes: String?,
+        score: Int,
+        prioridade: LeadPriority,
+    ): Boolean = dbQuery {
+        val now = LocalDateTime.now()
+        val n = LeadsTable.update({ LeadsTable.id eq id }) {
+            it[LeadsTable.razaoSocial] = razaoSocial
+            it[LeadsTable.nomeFantasia] = nomeFantasia
+            it[LeadsTable.telefoneOriginal] = telefoneOriginal
+            it[LeadsTable.telefoneNormalizado] = telefoneNormalizado
+            it[LeadsTable.email] = email
+            it[LeadsTable.endereco] = endereco
+            it[LeadsTable.cidade] = cidade
+            it[LeadsTable.estado] = estado
+            it[LeadsTable.dataAbertura] = dataAbertura
+            it[LeadsTable.cnae] = cnae
+            it[LeadsTable.situacao] = situacao
+            it[LeadsTable.porte] = porte
+            it[LeadsTable.socio] = socio
+            it[LeadsTable.capitalSocial] = capitalSocial
+            it[LeadsTable.tipo] = tipo
+            it[LeadsTable.observacoes] = observacoes
+            it[LeadsTable.score] = score
+            it[LeadsTable.prioridade] = prioridade.name
+            it[updatedAt] = now
+        }
+        n > 0
+    }
+
     fun dashboardCounts(): LeadDashboardCounts = dbQuery {
         fun countWhere(condition: Op<Boolean>): Long =
             LeadsTable.select(LeadsTable.id).where { condition }.count()
@@ -198,6 +262,14 @@ class LeadRepository {
         score = this[LeadsTable.score],
         prioridade = this[LeadsTable.prioridade],
         status = this[LeadsTable.status],
+        jaFoiSorteado = this[LeadsTable.jaFoiSorteado],
+        primeiroSorteioEm = this[LeadsTable.primeiroSorteioEm],
+        quantidadeTentativas = this[LeadsTable.quantidadeTentativas],
+        respondeu = this[LeadsTable.respondeu],
+        interessado = this[LeadsTable.interessado],
+        observacoes = this[LeadsTable.observacoes],
+        createdAt = this[LeadsTable.createdAt],
+        updatedAt = this[LeadsTable.updatedAt],
     )
 
     private companion object {

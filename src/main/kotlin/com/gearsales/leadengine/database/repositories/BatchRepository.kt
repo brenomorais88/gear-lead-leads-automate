@@ -58,6 +58,14 @@ class BatchRepository {
             .map { it[DailyBatchLeadsTable.leadId].value }
     }
 
+    fun findLatestBatchId(): Long? = dbQuery {
+        DailyBatchesTable.selectAll()
+            .orderBy(DailyBatchesTable.id, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.let { it[DailyBatchesTable.id].value }
+    }
+
     private fun ResultRow.toBatchListRow() = BatchListRow(
         id = this[DailyBatchesTable.id].value,
         createdAt = this[DailyBatchesTable.createdAt],
