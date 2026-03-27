@@ -4,11 +4,25 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
-<main>
+<main class="dashboard-main">
     <section>
-        <h1>Dashboard</h1>
-        <p>O projeto inicial foi criado com sucesso.</p>
-        <button type="button" class="button">Gerar lote de 20 leads</button>
+        <h1 th:text="${title}">Dashboard</h1>
+
+        <dl class="dashboard-metrics" th:if="${stats != null}">
+            <div><dt>Total de leads</dt><dd th:text="${stats.totalLeads}">0</dd></div>
+            <div><dt>Novos</dt><dd th:text="${stats.totalNovos}">0</dd></div>
+            <div><dt>Sorteados</dt><dd th:text="${stats.totalSorteados}">0</dd></div>
+            <div><dt>Contatados</dt><dd th:text="${stats.totalContatados}">0</dd></div>
+            <div><dt>Respondeu</dt><dd th:text="${stats.totalRespondeu}">0</dd></div>
+            <div><dt>Interessados</dt><dd th:text="${stats.totalInteressados}">0</dd></div>
+            <div><dt>Sem interesse</dt><dd th:text="${stats.totalSemInteresse}">0</dd></div>
+            <div><dt>Número inválido</dt><dd th:text="${stats.totalNumeroInvalido}">0</dd></div>
+            <div><dt>Restantes para sorteio</dt><dd th:text="${stats.restantesParaSorteio}">0</dd></div>
+        </dl>
+
+        <form method="post" action="/batches/generate" class="dashboard-generate">
+            <button type="submit" class="button">Gerar lote de 20 leads</button>
+        </form>
     </section>
 </main>
 </body>

@@ -4,10 +4,67 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
-<main>
-    <section>
+<main class="leads-main">
+    <section class="leads-section">
         <h1 th:text="${title}">Leads</h1>
-        <p>Página em construção.</p>
+
+        <form class="leads-filters" method="get" action="/leads">
+            <label>
+                Nome (razão ou fantasia)
+                <input type="text" name="q" th:value="${q}" placeholder="Buscar…"/>
+            </label>
+            <label>
+                Status
+                <select name="status">
+                    <option value="">Todos</option>
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                            th:selected="${s == statusFilter}">NOVO</option>
+                </select>
+            </label>
+            <label>
+                Prioridade
+                <select name="prioridade">
+                    <option value="">Todas</option>
+                    <option th:each="p : ${prioridades}" th:value="${p}" th:text="${p}"
+                            th:selected="${p == prioridadeFilter}">BAIXA</option>
+                </select>
+            </label>
+            <button type="submit" class="button">Filtrar</button>
+        </form>
+
+        <div class="table-wrap leads-table-wrap">
+            <table class="preview-table leads-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Cidade / UF</th>
+                    <th>Telefone (WhatsApp)</th>
+                    <th>CNAE</th>
+                    <th>Score</th>
+                    <th>Prioridade</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="lead : ${leads}">
+                    <td th:text="${lead.id}">0</td>
+                    <td th:text="${lead.nomeFantasia != null and not lead.nomeFantasia.isEmpty() ? lead.nomeFantasia : lead.razaoSocial}">-</td>
+                    <td>
+                        <span th:text="${lead.cidade}">-</span>
+                        <span th:if="${lead.cidade != null and not lead.cidade.isEmpty() and lead.estado != null and not lead.estado.isEmpty()}"> / </span>
+                        <span th:text="${lead.estado}"></span>
+                    </td>
+                    <td th:text="${lead.telefoneNormalizado}">-</td>
+                    <td th:text="${lead.cnae}">-</td>
+                    <td th:text="${lead.score}">0</td>
+                    <td th:text="${lead.prioridade}">-</td>
+                    <td th:text="${lead.status}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p th:if="${leads.isEmpty()}">Nenhum lead encontrado.</p>
     </section>
 </main>
 </body>

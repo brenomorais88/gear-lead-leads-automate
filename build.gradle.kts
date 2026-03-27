@@ -44,7 +44,6 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.3.0")
 
     implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
-    implementation("org.thymeleaf:thymeleaf-spring6:3.1.2.RELEASE")
 
     implementation("ch.qos.logback:logback-classic:1.5.8")
 

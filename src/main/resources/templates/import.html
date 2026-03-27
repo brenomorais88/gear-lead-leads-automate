@@ -7,7 +7,95 @@
 <main>
     <section>
         <h1 th:text="${title}">Importação</h1>
-        <p>Página em construção.</p>
+
+        <form class="import-form" method="post" action="/import" enctype="multipart/form-data">
+            <label for="file">Arquivo Excel (.xlsx)</label>
+            <input id="file" name="file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required/>
+            <button type="submit" class="button">Importar</button>
+        </form>
+
+        <p class="error" th:if="${error != null}" th:text="${error}">Erro</p>
+
+        <div class="import-result" th:if="${result != null}">
+            <h2>Resumo da importação</h2>
+            <ul class="result-stats">
+                <li><strong>Total lido:</strong> <span th:text="${result.totalLido}">0</span></li>
+                <li><strong>Total importado:</strong> <span th:text="${result.totalImportado}">0</span></li>
+                <li><strong>Total duplicado (CNPJ já existente):</strong> <span th:text="${result.totalDuplicado}">0</span></li>
+                <li><strong>Total inválido:</strong> <span th:text="${result.totalInvalido}">0</span></li>
+            </ul>
+            <div th:if="${result.erros != null and not result.erros.isEmpty()}">
+                <h3>Erros (até 20)</h3>
+                <ul class="map-list">
+                    <li th:each="msg : ${result.erros}" th:text="${msg}">-</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="import-preview" th:if="${preview != null}">
+            <h2>Resultado do parse</h2>
+            <p><strong>Total de linhas lidas:</strong> <span th:text="${preview.totalLido}">0</span></p>
+
+            <h3>Colunas reconhecidas</h3>
+            <ul class="map-list" th:if="${not preview.colunasMapeadas.isEmpty()}">
+                <li th:each="entry : ${preview.colunasMapeadas}">
+                    <span th:text="${entry.key}">campo</span>
+                    <span> → </span>
+                    <span th:text="${entry.value}">cabeçalho</span>
+                </li>
+            </ul>
+            <p th:if="${preview.colunasMapeadas.isEmpty()}">Nenhuma coluna reconhecida.</p>
+
+            <h3>Colunas não reconhecidas</h3>
+            <ul class="map-list" th:if="${not preview.colunasNaoReconhecidas.isEmpty()}">
+                <li th:each="col : ${preview.colunasNaoReconhecidas}" th:text="${col}">?</li>
+            </ul>
+            <p th:if="${preview.colunasNaoReconhecidas.isEmpty()}">Nenhuma.</p>
+
+            <h3>Prévia (até 10 primeiras linhas)</h3>
+            <div class="table-wrap">
+                <table class="preview-table">
+                    <thead>
+                    <tr>
+                        <th>CNPJ</th>
+                        <th>Razão social</th>
+                        <th>Nome fantasia</th>
+                        <th>Telefone</th>
+                        <th>Email</th>
+                        <th>Endereço</th>
+                        <th>Cidade</th>
+                        <th>UF</th>
+                        <th>Data abertura</th>
+                        <th>CNAE</th>
+                        <th>Situação</th>
+                        <th>Porte</th>
+                        <th>Sócio</th>
+                        <th>Capital social</th>
+                        <th>Tipo</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${previewRows}">
+                        <td th:text="${row.cnpj}">-</td>
+                        <td th:text="${row.razaoSocial}">-</td>
+                        <td th:text="${row.nomeFantasia}">-</td>
+                        <td th:text="${row.telefone}">-</td>
+                        <td th:text="${row.email}">-</td>
+                        <td th:text="${row.endereco}">-</td>
+                        <td th:text="${row.cidade}">-</td>
+                        <td th:text="${row.estado}">-</td>
+                        <td th:text="${row.dataAbertura}">-</td>
+                        <td th:text="${row.cnae}">-</td>
+                        <td th:text="${row.situacao}">-</td>
+                        <td th:text="${row.porte}">-</td>
+                        <td th:text="${row.socio}">-</td>
+                        <td th:text="${row.capitalSocial}">-</td>
+                        <td th:text="${row.tipo}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </section>
 </main>
 </body>

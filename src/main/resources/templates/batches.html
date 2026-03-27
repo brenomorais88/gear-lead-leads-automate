@@ -4,10 +4,31 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
-<main>
+<main class="batches-main">
     <section>
         <h1 th:text="${title}">Lotes</h1>
-        <p>Página em construção.</p>
+
+        <p class="flash-msg" th:if="${msg == 'sem_elegiveis'}">Não há leads elegíveis para sorteio no momento.</p>
+
+        <div class="table-wrap" th:if="${!batches.isEmpty()}">
+            <table class="preview-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Criado em</th>
+                    <th>Total de leads</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${batches}">
+                    <td><a th:href="|/batches/${b.id}|" th:text="${b.id}">0</a></td>
+                    <td th:text="${b.createdAt}">-</td>
+                    <td th:text="${b.totalLeads}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p th:if="${batches.isEmpty()}">Nenhum lote gerado ainda.</p>
     </section>
 </main>
 </body>
