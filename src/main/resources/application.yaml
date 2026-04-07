@@ -7,3 +7,21 @@ ktor:
 
 storage:
   sqlitePath: "./data/lead-engine.db"
+
+# Opcional: infra em yaml; segredos preferir WHATSAPP_* no .env.
+# phoneNumberId / template / limite / delay: seed inicial da tabela whatsapp_settings (se vazia); runtime vem do banco.
+whatsapp:
+  apiBaseUrl: "https://graph.facebook.com"
+  apiVersion: "v21.0"
+  businessAccountId: ""
+  phoneNumberId: ""
+  defaultTemplateName: "gear_lead_intro_v1"
+  defaultTemplateLanguage: "pt_BR"
+  dailySendLimit: 100
+  webhookVerifyToken: "gearleadengine_wh_verify_2026_local"
+  # Worker / fila (somente ambiente; não persistidos em whatsapp_settings)
+  sendDelayMinMinutes: 5
+  sendDelayMaxMinutes: 30
+  workerPollIntervalSeconds: 30
+  processingStaleSeconds: 600
+  quotaDeferMinutes: 15

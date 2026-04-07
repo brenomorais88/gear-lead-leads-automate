@@ -36,6 +36,123 @@ nav a:hover {
     text-decoration: underline;
 }
 
+/* Faixa global: status operacional do motor WhatsApp */
+.wa-global-engine {
+    margin: -0.25rem 0 1rem;
+    padding: 0.5rem 0.75rem;
+    background: #e8eef5;
+    border: 1px solid #c5d3e3;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.wa-global-engine__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.65rem;
+}
+
+.wa-global-engine__title {
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-right: 0.25rem;
+}
+
+.wa-global-engine__badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid #b0c4d8;
+    color: #333;
+}
+
+.wa-global-engine__badge--idle {
+    background: #f0f0f0;
+    border-color: #ccc;
+}
+
+.wa-global-engine__badge--waiting_next_send {
+    background: #fff8e6;
+    border-color: #e6c200;
+    color: #5c4a00;
+}
+
+.wa-global-engine__badge--ready_to_send {
+    background: #e6f7ed;
+    border-color: #2e9d4f;
+    color: #0d4d24;
+}
+
+.wa-global-engine__badge--processing {
+    background: #e3f2fd;
+    border-color: #1976d2;
+    color: #0d47a1;
+}
+
+.wa-global-engine__badge--daily_limit_reached {
+    background: #fce8e6;
+    border-color: #d84315;
+    color: #6d1f0a;
+}
+
+.wa-global-engine__badge--misconfigured,
+.wa-global-engine__badge--error {
+    background: #fdecea;
+    border-color: #c62828;
+    color: #7f1010;
+}
+
+.wa-global-engine__badge--pending_without_schedule {
+    background: #fff3e0;
+    border-color: #ef6c00;
+    color: #5d3100;
+}
+
+.wa-global-engine__badge--paused {
+    background: #ede7f6;
+    border-color: #5e35b1;
+    color: #311b92;
+}
+
+.wa-global-engine__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.wa-global-engine__actions .button-small {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+}
+
+.wa-global-engine__msg {
+    flex: 1 1 12rem;
+    color: #333;
+}
+
+.wa-global-engine__meta {
+    flex: 1 1 100%;
+    font-size: 0.72rem;
+    color: #555;
+}
+
+.wa-dash-engine-inline {
+    font-size: 0.78rem;
+    color: #333;
+    margin: 0.35rem 0 0.75rem;
+    padding: 0.35rem 0.5rem;
+    background: #f4f7fa;
+    border-radius: 4px;
+    border-left: 3px solid #1e3a5f;
+}
+
 main {
     max-width: 48rem;
 }
@@ -222,9 +339,89 @@ a.leads-row-link:hover {
     margin-top: 1rem;
 }
 
+.dashboard-section-title {
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.dashboard-whatsapp-block {
+    margin-top: 0.25rem;
+}
+
+.wa-dash-loading {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0.35rem 0 0.5rem;
+}
+
+.dashboard-whatsapp-metrics dd {
+    font-size: 1rem;
+}
+
+.dashboard-whatsapp-actions {
+    margin: 0.75rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.dashboard-whatsapp-actions .button-small {
+    margin-top: 0;
+}
+
 .flash-msg {
     color: #a40000;
     margin: 0.75rem 0;
+}
+
+.flash-msg--success {
+    color: #1b5e20;
+    margin: 0.75rem 0;
+    padding: 0.5rem 0.65rem;
+    background: #e8f5e9;
+    border-radius: 4px;
+    border: 1px solid #a5d6a7;
+}
+
+.flash-msg--error {
+    color: #7f1010;
+    margin: 0.75rem 0;
+    padding: 0.5rem 0.65rem;
+    background: #fdecea;
+    border-radius: 4px;
+    border: 1px solid #c62828;
+}
+
+.muted {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.wa-cfg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 28rem;
+}
+
+.wa-cfg-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.wa-cfg-form input {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.whatsapp-config-main {
+    max-width: 48rem;
 }
 
 .batches-main,
@@ -309,6 +506,213 @@ a.leads-row-link:hover {
 
 .batch-meta dd {
     margin: 0.15rem 0 0;
+}
+
+.wa-batch-summary {
+    margin: 1rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.wa-summary-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin: 0.5rem 0 0;
+}
+
+.wa-summary-grid div {
+    margin: 0;
+}
+
+.wa-summary-grid dt {
+    font-size: 0.8rem;
+    color: #555;
+    margin: 0;
+}
+
+.wa-summary-grid dd {
+    margin: 0.15rem 0 0;
+    font-weight: 600;
+}
+
+.wa-toolbar {
+    margin: 1rem 0 0;
+    padding: 0.75rem 0 0;
+    border-top: 1px solid #eee;
+}
+
+.wa-toolbar-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.wa-toolbar .button-small {
+    margin-top: 0;
+}
+
+.wa-action-message {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+    color: #1a5f1a;
+    min-height: 1.25rem;
+}
+
+.wa-action-message--error {
+    color: #a40000;
+}
+
+.button-secondary {
+    background: #fff;
+    color: #1e3a5f;
+}
+
+.button-secondary:hover {
+    background: #eef2f7;
+}
+
+.wa-cell-wrap {
+    white-space: normal;
+    max-width: 10rem;
+    word-break: break-word;
+}
+
+.wa-cell-mono {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+}
+
+.wa-cell-ellipsis {
+    max-width: 7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.campaigns-main {
+    max-width: 72rem;
+}
+
+.campaigns-filters {
+    margin: 1rem 0;
+}
+
+.campaigns-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.25rem;
+    align-items: flex-end;
+}
+
+.campaigns-filter-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+}
+
+.campaigns-filter-row select,
+.campaigns-filter-row input {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.35rem;
+}
+
+.campaigns-filter-submit {
+    margin-top: 0;
+}
+
+.campaigns-meta {
+    font-size: 0.85rem;
+    color: #444;
+    margin: 0.75rem 0;
+}
+
+.campaigns-pagination {
+    margin: 0.5rem 0;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.campaigns-pagination--bottom {
+    margin-top: 1rem;
+}
+
+.campaigns-table-wrap {
+    margin-top: 0.5rem;
+}
+
+.campaigns-table {
+    font-size: 0.72rem;
+}
+
+.campaigns-cell-ellipsis {
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.campaigns-cell-mono {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+}
+
+.campaigns-template-lang {
+    color: #666;
+    font-size: 0.85em;
+}
+
+.campaigns-date {
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.campaign-status {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.12rem 0.35rem;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.campaign-status--PENDING,
+.campaign-status--SENDING {
+    background: #fff4d6;
+    color: #6b5200;
+}
+
+.campaign-status--SENT,
+.campaign-status--DELIVERED {
+    background: #e6f2ff;
+    color: #124080;
+}
+
+.campaign-status--READ {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.campaign-status--RESPONDED {
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+
+.campaign-status--FAILED,
+.campaign-status--STOPPED {
+    background: #fdecea;
+    color: #8b1a1a;
+}
+
+.campaign-failure-cell {
+    max-width: 11rem;
+    font-size: 0.68rem;
+    color: #7a2a2a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .lead-detail-main {

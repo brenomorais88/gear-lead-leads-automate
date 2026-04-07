@@ -29,6 +29,9 @@ data class LeadRecord(
     val respondeu: Boolean,
     val interessado: Boolean,
     val observacoes: String?,
+    val ultimoContatoEm: LocalDateTime?,
+    val proximoFollowupEm: LocalDateTime?,
+    val numeroValido: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 )

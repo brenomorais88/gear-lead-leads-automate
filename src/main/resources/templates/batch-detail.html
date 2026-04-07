@@ -4,6 +4,7 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
 <main class="batch-detail-main">
     <section>
         <p class="batch-detail-back"><a href="/batches">← Voltar aos lotes</a></p>
@@ -14,6 +15,27 @@
             <div><dt>Criado em</dt><dd th:text="${batch.createdAt}">-</dd></div>
             <div><dt>Total de leads</dt><dd th:text="${batch.totalLeads}">0</dd></div>
         </dl>
+
+        <section class="wa-batch-summary" th:if="${batch != null and whatsappSummary != null}">
+            <h2 class="batch-ops-title">WhatsApp — resumo do lote</h2>
+            <dl class="wa-summary-grid">
+                <div><dt>Total de leads</dt><dd th:text="${whatsappSummary.totalLeads}">0</dd></div>
+                <div><dt>Campanhas criadas</dt><dd th:text="${whatsappSummary.summary.campaignsCreated}">0</dd></div>
+                <div><dt>Pendentes</dt><dd th:text="${whatsappSummary.summary.pending}">0</dd></div>
+                <div><dt>Enviadas</dt><dd th:text="${whatsappSummary.summary.sent}">0</dd></div>
+                <div><dt>Falhadas</dt><dd th:text="${whatsappSummary.summary.failed}">0</dd></div>
+                <div><dt>Respondidas</dt><dd th:text="${whatsappSummary.summary.responded}">0</dd></div>
+            </dl>
+        </section>
+
+        <div class="wa-toolbar" th:if="${batch != null}">
+            <div class="wa-toolbar-buttons">
+                <button type="button" id="wa-prepare-send" class="button button-small">Preparar envio</button>
+                <button type="button" id="wa-send-batch" class="button button-small">Disparar lote</button>
+                <button type="button" id="wa-refresh" class="button button-small button-secondary">Atualizar status</button>
+            </div>
+            <p id="wa-action-message" class="wa-action-message" aria-live="polite"></p>
+        </div>
 
         <h2 class="batch-ops-title">Leads do lote</h2>
         <div class="table-wrap batch-ops-table-wrap" th:if="${batch != null and !batch.leads.isEmpty()}">
@@ -28,6 +50,13 @@
                     <th>Score</th>
                     <th>Prio.</th>
                     <th>Status</th>
+                    <th>Campanha</th>
+                    <th>Último envio</th>
+                    <th>Falha / erro</th>
+                    <th>Categoria</th>
+                    <th>Agendado</th>
+                    <th>Message ID</th>
+                    <th>Respondeu</th>
                     <th>Ações</th>
                 </tr>
                 </thead>
@@ -45,6 +74,14 @@
                     <td th:text="${lead.score}">0</td>
                     <td th:text="${lead.prioridade}">-</td>
                     <td th:text="${lead.status}">-</td>
+                    <td th:text="${lead.campaignStatus}">-</td>
+                    <td th:text="${lead.campaignSentAt}">-</td>
+                    <td class="wa-cell-wrap" th:text="${lead.campaignFailure}">-</td>
+                    <td th:text="${lead.campaignFailureCategory}">-</td>
+                    <td class="campaigns-date" th:text="${lead.campaignScheduledAt}">-</td>
+                    <td class="wa-cell-mono wa-cell-ellipsis" th:text="${lead.waMessageIdDisplay}"
+                        th:title="${#strings.isEmpty(lead.waMessageIdTitle) ? lead.waMessageIdDisplay : lead.waMessageIdTitle}">-</td>
+                    <td th:text="${lead.respondeuWhatsApp}">-</td>
                     <td class="batch-actions-cell">
                         <div class="batch-actions-row">
                             <a class="button button-small" th:href="${lead.detailUrl}">Detalhe</a>
@@ -91,5 +128,11 @@
         <p th:if="${batch == null or batch.leads.isEmpty()}">Nenhum lead neste lote.</p>
     </section>
 </main>
+<th:block th:if="${batch != null}">
+    <script th:inline="javascript">
+        window.__GEAR_BATCH_ID__ = /*[[${batch.id}]]*/ null;
+    </script>
+    <script src="/static/batch-detail-whatsapp.js" defer></script>
+</th:block>
 </body>
 </html>

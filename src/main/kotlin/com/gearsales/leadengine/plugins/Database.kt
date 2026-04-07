@@ -3,7 +3,9 @@ package com.gearsales.leadengine.plugins
 import com.gearsales.leadengine.database.tables.DailyBatchLeadsTable
 import com.gearsales.leadengine.database.tables.DailyBatchesTable
 import com.gearsales.leadengine.database.tables.LeadInteractionsTable
+import com.gearsales.leadengine.database.tables.LeadMessageCampaignsTable
 import com.gearsales.leadengine.database.tables.LeadsTable
+import com.gearsales.leadengine.database.tables.WhatsappSettingsTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.Application
@@ -31,6 +33,8 @@ fun Application.configureDatabase() {
             DailyBatchesTable,
             DailyBatchLeadsTable,
             LeadInteractionsTable,
+            LeadMessageCampaignsTable,
+            WhatsappSettingsTable,
         )
     }
 }

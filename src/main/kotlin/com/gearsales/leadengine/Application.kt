@@ -2,7 +2,9 @@ package com.gearsales.leadengine
 
 import com.gearsales.leadengine.plugins.configureDatabase
 import com.gearsales.leadengine.plugins.configureRouting
+import com.gearsales.leadengine.plugins.configureSerialization
 import com.gearsales.leadengine.plugins.configureTemplating
+import com.gearsales.leadengine.plugins.configureWhatsAppIntegration
 import io.ktor.server.application.Application
 import io.ktor.server.netty.EngineMain
 
@@ -13,5 +15,7 @@ fun main(args: Array<String>) {
 fun Application.module() {
     configureTemplating()
     configureDatabase()
+    configureWhatsAppIntegration()
+    configureSerialization()
     configureRouting()
 }

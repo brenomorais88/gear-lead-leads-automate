@@ -5,11 +5,13 @@ import com.gearsales.leadengine.domain.model.LeadImportRow
 import com.gearsales.leadengine.domain.model.LeadPriority
 import com.gearsales.leadengine.domain.model.LeadRecord
 import com.gearsales.leadengine.domain.model.LeadStatus
+import com.gearsales.leadengine.domain.service.PhoneNormalizer
 import org.jetbrains.exposed.sql.Case
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNotNull
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
@@ -111,6 +113,37 @@ class LeadRepository {
         LeadsTable.selectAll().where { LeadsTable.id eq id }.firstOrNull()?.toLeadRecord()
     }
 
+    /**
+     * Correlaciona o `from` do webhook Meta (apenas dígitos, com ou sem 55) com [LeadsTable.telefoneNormalizado].
+     */
+    fun findFirstMatchingWhatsAppFrom(waFrom: String): LeadRecord? = dbQuery {
+        val digits = waFrom.filter { it.isDigit() }
+        if (digits.isEmpty()) return@dbQuery null
+        val candidates = buildSet {
+            add(digits)
+            PhoneNormalizer.normalizeForWhatsApp(waFrom)?.let { add(it) }
+            PhoneNormalizer.normalizeForWhatsApp(digits)?.let { add(it) }
+            if (digits.length == 11) add("55$digits")
+            if (digits.length == 10) add("55$digits")
+        }.filter { it.isNotBlank() }.toList()
+        if (candidates.isEmpty()) return@dbQuery null
+        LeadsTable.selectAll()
+            .where { LeadsTable.telefoneNormalizado inList candidates }
+            .orderBy(LeadsTable.id, SortOrder.ASC)
+            .firstOrNull()
+            ?.toLeadRecord()
+    }
+
+    fun applyInboundWhatsAppReply(leadId: Long, now: LocalDateTime): Boolean = dbQuery {
+        val n = LeadsTable.update({ LeadsTable.id eq leadId }) {
+            it[status] = LeadStatus.RESPONDEU.name
+            it[respondeu] = true
+            it[proximoFollowupEm] = null
+            it[updatedAt] = now
+        }
+        n > 0
+    }
+
     fun findByIdsOrdered(ids: List<Long>): List<LeadRecord> {
         if (ids.isEmpty()) return emptyList()
         return dbQuery {
@@ -152,6 +185,32 @@ class LeadRepository {
                 it[updatedAt] = agora
             }
         }
+    }
+
+    fun updateLeadAfterSuccessfulTemplateSend(
+        id: Long,
+        now: LocalDateTime,
+        proximoFollowupEm: LocalDateTime,
+    ): Boolean = dbQuery {
+        val row = LeadsTable.selectAll().where { LeadsTable.id eq id }.firstOrNull() ?: return@dbQuery false
+        val currentTentativas = row[LeadsTable.quantidadeTentativas]
+        LeadsTable.update({ LeadsTable.id eq id }) {
+            it[status] = LeadStatus.CONTATADO.name
+            it[quantidadeTentativas] = currentTentativas + 1
+            it[ultimoContatoEm] = now
+            it[LeadsTable.proximoFollowupEm] = proximoFollowupEm
+            it[updatedAt] = now
+        }
+        true
+    }
+
+    fun markLeadPhoneInvalid(id: Long, now: LocalDateTime): Boolean = dbQuery {
+        val n = LeadsTable.update({ LeadsTable.id eq id }) {
+            it[LeadsTable.numeroValido] = false
+            it[status] = LeadStatus.NUMERO_INVALIDO.name
+            it[updatedAt] = now
+        }
+        n > 0
     }
 
     fun updateLeadStatus(id: Long, newStatus: LeadStatus): Boolean = dbQuery {
@@ -268,6 +327,9 @@ class LeadRepository {
         respondeu = this[LeadsTable.respondeu],
         interessado = this[LeadsTable.interessado],
         observacoes = this[LeadsTable.observacoes],
+        ultimoContatoEm = this[LeadsTable.ultimoContatoEm],
+        proximoFollowupEm = this[LeadsTable.proximoFollowupEm],
+        numeroValido = this[LeadsTable.numeroValido],
         createdAt = this[LeadsTable.createdAt],
         updatedAt = this[LeadsTable.updatedAt],
     )
