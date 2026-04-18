@@ -8,15 +8,15 @@ services:
     env_file:
       - .env
     environment:
-      APP_PORT: ${APP_PORT:-3000}
-      KTOR_DEPLOYMENT_PORT: ${APP_PORT:-3000}
+      APP_PORT: "3000"
+      KTOR_DEPLOYMENT_PORT: "3000"
       SQLITE_PATH: ${SQLITE_PATH:-/app/data/lead-engine.db}
     ports:
-      - "${APP_PORT:-3000}:${APP_PORT:-3000}"
+      - "${APP_PORT:-3000}:3000"
     volumes:
       - ./data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${APP_PORT:-3000}/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -26,9 +26,22 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: gear-lead-engine-cloudflared
     restart: unless-stopped
-    command: tunnel --no-autoupdate --url http://app:${APP_PORT:-3000}
+    command: tunnel --no-autoupdate --url http://app:3000
     depends_on:
       app:
         condition: service_healthy
     profiles:
       - tunnel
+
+  # Túnel nomeado (Cloudflare Zero Trust): URL fixa com o SEU domínio — use no webhook da Meta.
+  # Crie o túnel no painel, defina Public Hostname → http://app:3000 e cole o token em .env.
+  cloudflared-named:
+    image: cloudflare/cloudflared:latest
+    container_name: gear-lead-engine-cloudflared-named
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      app:
+        condition: service_healthy
+    profiles:
+      - tunnel-stable

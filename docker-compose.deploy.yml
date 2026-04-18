@@ -1,0 +1,31 @@
+# Deploy em servidor fraco: sem build — só pull da imagem publicada (ex.: GHCR pela esteira).
+# Uso no servidor (na pasta com .env e ./data):
+#   export DEPLOY_IMAGE=ghcr.io/OWNER/REPO:integracao_whats
+#   docker compose -f docker-compose.deploy.yml pull
+#   docker compose -f docker-compose.deploy.yml up -d
+#
+# DEPLOY_IMAGE pode estar no arquivo .env (mesma pasta) para o Compose interpolar.
+
+services:
+  app:
+    # Defina DEPLOY_IMAGE no .env ou no ambiente (ex.: ghcr.io/dono/repo:integracao_whats).
+    image: ${DEPLOY_IMAGE}
+    container_name: gear-lead-engine-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_PORT: "3000"
+      KTOR_DEPLOYMENT_PORT: "3000"
+      SQLITE_PATH: ${SQLITE_PATH:-/app/data/lead-engine.db}
+    ports:
+      # Host:container — a JVM escuta na 3000 (application.yaml); APP_PORT só muda a porta pública.
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
