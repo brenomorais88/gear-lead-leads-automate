@@ -8,5 +8,8 @@ data class LeadInteractionRecord(
     val interactionType: String,
     val result: String?,
     val note: String?,
+    val direction: String?,
+    val externalMessageId: String?,
+    val metadataJson: String?,
     val createdAt: LocalDateTime,
 )

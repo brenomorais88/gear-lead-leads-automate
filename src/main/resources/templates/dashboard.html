@@ -4,6 +4,7 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
 <main class="dashboard-main">
     <section>
         <h1 th:text="${title}">Dashboard</h1>
@@ -20,14 +21,35 @@
             <div><dt>Restantes para sorteio</dt><dd th:text="${stats.restantesParaSorteio}">0</dd></div>
         </dl>
 
+        <div id="dashboard-whatsapp-root" class="dashboard-whatsapp-block">
+            <h2 class="dashboard-section-title">Disparo WhatsApp</h2>
+            <p id="wa-dash-loading" class="wa-dash-loading">Carregando resumo…</p>
+            <p id="wa-dash-error" class="flash-msg" hidden></p>
+            <dl class="dashboard-metrics dashboard-whatsapp-metrics">
+                <div><dt>Limite diário</dt><dd id="wa-dailyLimit">—</dd></div>
+                <div><dt>Enviadas hoje</dt><dd id="wa-sentToday">—</dd></div>
+                <div><dt>Quota restante hoje</dt><dd id="wa-remainingQuotaToday">—</dd></div>
+                <div><dt>Campanhas pendentes</dt><dd id="wa-pendingCampaigns">—</dd></div>
+                <div><dt>Campanhas falhadas</dt><dd id="wa-failedCampaigns">—</dd></div>
+                <div><dt>Campanhas respondidas</dt><dd id="wa-respondedCampaigns">—</dd></div>
+                <div><dt>Template ativo</dt><dd id="wa-activeTemplate">—</dd></div>
+            </dl>
+            <p id="wa-dash-engine-inline" class="wa-dash-engine-inline" hidden></p>
+            <p class="dashboard-whatsapp-actions">
+                <button type="button" id="wa-dash-refresh" class="button button-small button-secondary">Atualizar resumo</button>
+                <a href="/campaigns" class="button button-small button-secondary">Ver campanhas</a>
+            </p>
+        </div>
+
         <p class="dashboard-last-batch" th:if="${lastBatchId > 0}">
             <a th:href="|/batches/${lastBatchId}|" class="button button-secondary">Abrir último lote gerado</a>
         </p>
 
         <form method="post" action="/batches/generate" class="dashboard-generate">
-            <button type="submit" class="button">Gerar lote de 20 leads</button>
+            <button type="submit" class="button">Gerar lote</button>
         </form>
     </section>
 </main>
+<script src="/static/dashboard-whatsapp.js" defer></script>
 </body>
 </html>

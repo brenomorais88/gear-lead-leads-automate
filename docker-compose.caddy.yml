@@ -1,0 +1,30 @@
+# Terminação TLS (Let's Encrypt automático). Use junto do deploy:
+#
+#   export PUBLIC_HOST=webhook.seudominio.com.br
+#   docker compose -f docker-compose.deploy.yml -f docker-compose.caddy.yml --profile https up -d
+#
+# Requisitos: registro DNS A (ou AAAA) → IP do servidor; inbound TCP 80 e 443 (Let's Encrypt HTTP-01).
+
+services:
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: gear-lead-engine-caddy
+    restart: unless-stopped
+    profiles:
+      - https
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

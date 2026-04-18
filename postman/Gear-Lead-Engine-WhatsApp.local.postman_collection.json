@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "Gear Lead Engine — WhatsApp (local)",
+    "description": "Endpoints de disparo e webhook WhatsApp. Ajuste as variáveis da coleção (baseUrl, batchId, verifyToken, wamid).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+    { "key": "batchId", "value": "1" },
+    { "key": "verifyToken", "value": "gearleadengine_wh_verify_2026_local" },
+    { "key": "wamidDelivered", "value": "wamid.SEU_ID" },
+    { "key": "inboundFrom", "value": "5511999999999" }
+  ],
+  "item": [
+    {
+      "name": "Webhook — GET verify (Meta subscribe)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token={{verifyToken}}&hub.challenge=12345"
+      }
+    },
+    {
+      "name": "Motor — GET engine-status (JSON)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/whatsapp/engine-status"
+      }
+    },
+    {
+      "name": "API — GET campaigns (JSON)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/campaigns?limit=50&offset=0"
+      }
+    },
+    {
+      "name": "Batch — POST prepare-send",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/batches/{{batchId}}/prepare-send",
+        "body": { "mode": "raw", "raw": "" }
+      }
+    },
+    {
+      "name": "Batch — POST send",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/batches/{{batchId}}/send",
+        "body": { "mode": "raw", "raw": "" }
+      }
+    },
+    {
+      "name": "Webhook — POST status delivered (mínimo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/webhooks/whatsapp",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"entry\": [\n    {\n      \"changes\": [\n        {\n          \"value\": {\n            \"statuses\": [\n              {\n                \"id\": \"{{wamidDelivered}}\",\n                \"status\": \"delivered\",\n                \"timestamp\": \"1730000000\"\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Webhook — POST inbound text (mínimo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/webhooks/whatsapp",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"entry\": [\n    {\n      \"changes\": [\n        {\n          \"value\": {\n            \"messages\": [\n              {\n                \"from\": \"{{inboundFrom}}\",\n                \"id\": \"wamid.IN\",\n                \"timestamp\": \"1730000001\",\n                \"type\": \"text\",\n                \"text\": { \"body\": \"teste\" }\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}"
+        }
+      }
+    }
+  ]
+}

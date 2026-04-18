@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{base :: head}"></head>
+<body>
+<header th:replace="~{base :: header}"></header>
+<nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
+<main class="whatsapp-config-main">
+    <section>
+        <h1 th:text="${title}">Configurações WhatsApp</h1>
+        <p class="muted">Valores operacionais ficam no banco; token e URL da API permanecem no ambiente (.env).</p>
+
+        <p id="wa-cfg-flash" class="flash-msg" hidden></p>
+
+        <h2 class="dashboard-section-title">Estado do disparo</h2>
+        <p id="wa-cfg-service-line">Carregando…</p>
+        <p>
+            <button type="button" id="wa-cfg-pause" class="button button-secondary">Pausar serviço</button>
+            <button type="button" id="wa-cfg-resume" class="button button-secondary">Retomar serviço</button>
+        </p>
+
+        <h2 class="dashboard-section-title">Parâmetros</h2>
+        <form id="wa-cfg-form" class="wa-cfg-form">
+            <label>Phone Number ID
+                <input type="text" name="phoneNumberId" id="wa-cfg-phone" required autocomplete="off"/>
+            </label>
+            <label>Template padrão
+                <input type="text" name="defaultTemplateName" id="wa-cfg-tpl" required autocomplete="off"/>
+            </label>
+            <label>Idioma do template
+                <input type="text" name="defaultTemplateLanguage" id="wa-cfg-lang" required autocomplete="off" placeholder="ex.: pt_BR"/>
+            </label>
+            <label>Limite diário de envios
+                <input type="number" name="dailySendLimit" id="wa-cfg-limit" min="1" step="1" required/>
+            </label>
+            <label>Delay mínimo entre envios (minutos)
+                <input type="number" name="sendDelayMinMinutes" id="wa-cfg-dmin" min="0" step="1" required/>
+            </label>
+            <label>Delay máximo entre envios (minutos)
+                <input type="number" name="sendDelayMaxMinutes" id="wa-cfg-dmax" min="0" step="1" required/>
+            </label>
+            <label>Tamanho do lote (leads por lote)
+                <input type="number" name="batchSize" id="wa-cfg-batch" min="1" step="1" required/>
+            </label>
+            <label>Janela de execução — início (HH:mm)
+                <input type="text" name="executionStartTime" id="wa-cfg-exec-start" required autocomplete="off" placeholder="08:00"/>
+            </label>
+            <label>Janela de execução — fim (HH:mm)
+                <input type="text" name="executionEndTime" id="wa-cfg-exec-end" required autocomplete="off" placeholder="19:30"/>
+            </label>
+            <p class="muted">Fora dessa janela o worker não envia mensagens (pause manual e limite diário continuam valendo).</p>
+            <p>
+                <button type="submit" id="wa-cfg-save" class="button">Salvar</button>
+            </p>
+        </form>
+
+        <section class="wa-cfg-danger" aria-labelledby="wa-cfg-danger-title">
+            <h2 id="wa-cfg-danger-title" class="dashboard-section-title">Zona destrutiva</h2>
+            <p class="muted">Remove leads, lotes, campanhas e interações. As configurações em <strong>whatsapp_settings</strong> permanecem.</p>
+            <p>
+                <button type="button" id="wa-cfg-open-reset" class="button button-secondary">Apagar todos os dados</button>
+            </p>
+        </section>
+
+        <div id="wa-cfg-reset-modal" class="wa-cfg-modal" hidden>
+            <div class="wa-cfg-modal__panel" role="dialog" aria-modal="true" aria-labelledby="wa-cfg-reset-title">
+                <h2 id="wa-cfg-reset-title">Confirmar exclusão total</h2>
+                <p>Esta ação é <strong>irreversível</strong>. Todos os dados operacionais serão apagados; as configurações salvas na página não serão resetadas.</p>
+                <p class="muted">Digite exatamente (maiúsculas): <code>APAGAR TODOS OS DADOS</code></p>
+                <label>Confirmação
+                    <input type="text" id="wa-cfg-reset-phrase" autocomplete="off"/>
+                </label>
+                <p>
+                    <label><input type="checkbox" id="wa-cfg-reset-ack"/> Entendo que não há como desfazer.</label>
+                </p>
+                <p>
+                    <button type="button" id="wa-cfg-reset-cancel" class="button button-secondary">Cancelar</button>
+                    <button type="button" id="wa-cfg-reset-confirm" class="button" style="background:#8b1538;color:#fff;border-color:#6d0f2c">Apagar definitivamente</button>
+                </p>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="/static/whatsapp-settings-page.js" defer></script>
+</body>
+</html>
