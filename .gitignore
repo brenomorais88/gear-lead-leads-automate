@@ -46,3 +46,8 @@ bin/
 
 ### Runtime / local secrets ###
 .env
+
+### Local SQLite data (never commit DB files) ###
+data/*.db
+data/*.db-*
+!data/.gitkeep
