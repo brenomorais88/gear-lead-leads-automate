@@ -54,8 +54,9 @@ jobs:
     needs: docker
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Deploy and verify health over SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - uses: actions/checkout@v4
+      # Evita appleboy/ssh-action: ele baixa drone-ssh do GitHub Releases e pode falhar com 504 intermitente.
+      - name: Deploy and verify health over SSH (native)
         env:
           IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
           IMAGE_TAG: sha-${{ github.sha }}
@@ -64,103 +65,50 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           APP_PORT: ${{ secrets.APP_PORT }}
           PUBLIC_HOST: ${{ secrets.PUBLIC_HOST }}
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stop: true
-          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,DEPLOY_PATH,APP_PORT,PUBLIC_HOST
-          script: |
-            set -euo pipefail
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_PATH:-}" ]; then
+            echo "DEPLOY_PATH não definido (GitHub Secret)." >&2
+            exit 1
+          fi
+          if [ -z "${DEPLOY_HOST:-}" ] || [ -z "${DEPLOY_USER:-}" ] || [ -z "${DEPLOY_SSH_KEY:-}" ]; then
+            echo "DEPLOY_HOST/DEPLOY_USER/DEPLOY_SSH_KEY não definidos (GitHub Secrets)." >&2
+            exit 1
+          fi
+          if [ -z "${GHCR_USER:-}" ] || [ -z "${GHCR_TOKEN:-}" ]; then
+            echo "GHCR_USER/GHCR_TOKEN não definidos (GitHub Secrets)." >&2
+            exit 1
+          fi
 
-            if [ -z "${DEPLOY_PATH:-}" ]; then
-              echo "DEPLOY_PATH não definido (GitHub Secret)." >&2
-              exit 1
-            fi
-            if [ -z "${GHCR_USER:-}" ] || [ -z "${GHCR_TOKEN:-}" ]; then
-              echo "GHCR_USER/GHCR_TOKEN não definidos (GitHub Secrets)." >&2
-              exit 1
-            fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/gear_deploy_key
+          chmod 600 ~/.ssh/gear_deploy_key
 
-            IMAGE_REPO_LC="$(echo "${IMAGE_REPO}" | tr '[:upper:]' '[:lower:]')"
-            IMAGE="${IMAGE_REPO_LC}:${IMAGE_TAG}"
-            cd "${DEPLOY_PATH}"
+          IMAGE_REPO_LC="$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')"
+          IMAGE="${IMAGE_REPO_LC}:${IMAGE_TAG}"
 
-            echo "DEPLOY_PATH=${DEPLOY_PATH}"
-            ls -la "${DEPLOY_PATH}" || true
+          REMOTE_SCRIPT="${GITHUB_WORKSPACE}/scripts/gha-remote-deploy.sh"
+          if [ ! -f "${REMOTE_SCRIPT}" ]; then
+            echo "Script remoto não encontrado: ${REMOTE_SCRIPT}" >&2
+            exit 1
+          fi
 
-            if [ ! -f ".env" ]; then
-              echo "Arquivo .env não encontrado em ${DEPLOY_PATH}" >&2
-              exit 1
-            fi
-            if [ ! -f "docker-compose.deploy.yml" ]; then
-              echo "docker-compose.deploy.yml não encontrado em ${DEPLOY_PATH}" >&2
-              exit 1
-            fi
+          {
+            printf 'export IMAGE=%q\n' "${IMAGE}"
+            printf 'export GHCR_USER=%q\n' "${GHCR_USER}"
+            printf 'export GHCR_TOKEN=%q\n' "${GHCR_TOKEN}"
+            printf 'export DEPLOY_PATH=%q\n' "${DEPLOY_PATH}"
+            printf 'export APP_PORT_GH=%q\n' "${APP_PORT:-}"
+            printf 'export PUBLIC_HOST_GH=%q\n' "${PUBLIC_HOST:-}"
+            cat "${REMOTE_SCRIPT}"
+          } | ssh -i ~/.ssh/gear_deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=accept-new \
+            -o ConnectTimeout=30 \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            bash -s
 
-            if grep -q '^DEPLOY_IMAGE=' .env; then
-              sed -i.bak "s|^DEPLOY_IMAGE=.*$|DEPLOY_IMAGE=${IMAGE}|" .env
-            else
-              echo "DEPLOY_IMAGE=${IMAGE}" >> .env
-            fi
-
-            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
-
-            COMPOSE_FILES="-f docker-compose.deploy.yml"
-            COMPOSE_PROFILES=""
-            if [ -n "${PUBLIC_HOST:-}" ] && [ -f "docker-compose.caddy.yml" ]; then
-              COMPOSE_FILES="${COMPOSE_FILES} -f docker-compose.caddy.yml"
-              COMPOSE_PROFILES="--profile https"
-            fi
-
-            # shellcheck disable=SC2086
-            docker compose ${COMPOSE_FILES} ${COMPOSE_PROFILES} pull app
-            # shellcheck disable=SC2086
-            docker compose ${COMPOSE_FILES} ${COMPOSE_PROFILES} up -d
-
-            APP_PORT_VAL="${APP_PORT:-$(grep -E '^APP_PORT=' .env | head -n1 | cut -d'=' -f2)}"
-            APP_PORT_VAL="${APP_PORT_VAL:-3000}"
-
-            # Confirma que o container está com a imagem esperada.
-            APPLIED_IMAGE="$(docker inspect -f '{{.Config.Image}}' gear-lead-engine-app)"
-            echo "Imagem aplicada no container: ${APPLIED_IMAGE}"
-            if [ "${APPLIED_IMAGE}" != "${IMAGE}" ]; then
-              echo "Imagem aplicada difere da esperada. Esperado: ${IMAGE}" >&2
-              exit 1
-            fi
-
-            # Healthcheck interno com tentativas.
-            ok=0
-            for i in $(seq 1 20); do
-              if curl -fsS "http://127.0.0.1:${APP_PORT_VAL}/health" >/dev/null; then
-                ok=1
-                break
-              fi
-              sleep 3
-            done
-            if [ "$ok" -ne 1 ]; then
-              echo "Healthcheck HTTP interno falhou em http://127.0.0.1:${APP_PORT_VAL}/health" >&2
-              # shellcheck disable=SC2086
-              docker compose ${COMPOSE_FILES} ${COMPOSE_PROFILES} ps
-              # shellcheck disable=SC2086
-              docker compose ${COMPOSE_FILES} ${COMPOSE_PROFILES} logs --tail=120 app
-              exit 1
-            fi
-            echo "Healthcheck interno OK."
-
-            # Se PUBLIC_HOST estiver configurado, valida HTTPS externo também.
-            if [ -n "${PUBLIC_HOST:-}" ]; then
-              ok_ext=0
-              for i in $(seq 1 20); do
-                if curl -fsS "https://${PUBLIC_HOST}/health" >/dev/null; then
-                  ok_ext=1
-                  break
-                fi
-                sleep 3
-              done
-              if [ "$ok_ext" -ne 1 ]; then
-                echo "Healthcheck HTTPS externo falhou em https://${PUBLIC_HOST}/health" >&2
-                exit 1
-              fi
-              echo "Healthcheck HTTPS externo OK."
-            fi
+          rm -f ~/.ssh/gear_deploy_key
