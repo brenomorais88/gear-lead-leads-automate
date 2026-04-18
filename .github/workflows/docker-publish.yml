@@ -121,6 +121,7 @@ jobs:
             APP_PORT_VAL="${APP_PORT:-$(grep -E '^APP_PORT=' .env | head -n1 | cut -d'=' -f2)}"
             APP_PORT_VAL="${APP_PORT_VAL:-3000}"
 
+            # Confirma que o container está com a imagem esperada.
             APPLIED_IMAGE="$(docker inspect -f '{{.Config.Image}}' gear-lead-engine-app)"
             echo "Imagem aplicada no container: ${APPLIED_IMAGE}"
             if [ "${APPLIED_IMAGE}" != "${IMAGE}" ]; then
@@ -128,6 +129,7 @@ jobs:
               exit 1
             fi
 
+            # Healthcheck interno com tentativas.
             ok=0
             for i in $(seq 1 20); do
               if curl -fsS "http://127.0.0.1:${APP_PORT_VAL}/health" >/dev/null; then
@@ -146,6 +148,7 @@ jobs:
             fi
             echo "Healthcheck interno OK."
 
+            # Se PUBLIC_HOST estiver configurado, valida HTTPS externo também.
             if [ -n "${PUBLIC_HOST:-}" ]; then
               ok_ext=0
               for i in $(seq 1 20); do

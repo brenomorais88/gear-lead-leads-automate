@@ -32,6 +32,9 @@ object LeadsTable : LongIdTable("leads") {
     val respondeu = bool("respondeu").default(false)
     val interessado = bool("interessado").default(false)
     val observacoes = text("observacoes").nullable()
+    val ultimoContatoEm = datetime("ultimo_contato_em").nullable()
+    val proximoFollowupEm = datetime("proximo_followup_em").nullable()
+    val numeroValido = bool("numero_valido").default(true)
     val createdAt = datetime("created_at").defaultExpression(CurrentDateTime)
     val updatedAt = datetime("updated_at").defaultExpression(CurrentDateTime)
 }

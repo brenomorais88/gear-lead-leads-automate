@@ -4,6 +4,7 @@
 <body>
 <header th:replace="~{base :: header}"></header>
 <nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
 <main class="batches-main">
     <section>
         <h1 th:text="${title}">Lotes</h1>

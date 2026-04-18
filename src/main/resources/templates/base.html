@@ -15,6 +15,24 @@
     <a href="/import">Importação</a>
     <a href="/leads">Leads</a>
     <a href="/batches">Lotes</a>
+    <a href="/campaigns">Campanhas WhatsApp</a>
+    <a href="/whatsapp/config">Config. WhatsApp</a>
 </nav>
+<th:block th:fragment="wa-engine-strip">
+    <aside id="wa-global-engine" class="wa-global-engine" aria-live="polite">
+        <div class="wa-global-engine__inner">
+            <span class="wa-global-engine__title">Motor WhatsApp</span>
+            <span id="wa-global-engine-badge" class="wa-global-engine__badge">…</span>
+            <span id="wa-global-engine-msg" class="wa-global-engine__msg"></span>
+            <span id="wa-global-engine-meta" class="wa-global-engine__meta"></span>
+            <span class="wa-global-engine__actions">
+                <button type="button" id="wa-global-pause-btn" class="button button-small button-secondary">Pausar</button>
+                <button type="button" id="wa-global-resume-btn" class="button button-small button-secondary">Retomar</button>
+                <a href="/whatsapp/config" class="button button-small button-secondary">Editar config</a>
+            </span>
+        </div>
+    </aside>
+    <script src="/static/wa-engine-status.js" defer></script>
+</th:block>
 </body>
 </html>

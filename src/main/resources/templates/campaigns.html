@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{base :: head}"></head>
+<body>
+<header th:replace="~{base :: header}"></header>
+<nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
+<main class="campaigns-main">
+    <section>
+        <h1 th:text="${title}">Campanhas WhatsApp</h1>
+
+        <p class="flash-msg" th:if="${!#strings.isEmpty(filterWarning)}"
+           th:text="${filterWarning}">Aviso</p>
+
+        <form class="campaigns-filters" method="get" action="/campaigns">
+            <input type="hidden" name="page" value="0"/>
+            <div class="campaigns-filter-row">
+                <label>
+                    Status
+                    <select name="status">
+                        <option value="">(todos)</option>
+                        <option th:each="st : ${statusOptions}"
+                                th:value="${st}"
+                                th:text="${st}"
+                                th:selected="${st == filterStatus}">PENDING</option>
+                    </select>
+                </label>
+                <label>
+                    ID lote
+                    <input type="text" name="batchId" th:value="${filterBatchId}" placeholder="ex.: 12" size="8"/>
+                </label>
+                <label>
+                    Loja (nome)
+                    <input type="search" name="loja" th:value="${filterLoja}" placeholder="fantasia ou razão social" size="28"/>
+                </label>
+                <button type="submit" class="button button-small campaigns-filter-submit">Filtrar</button>
+            </div>
+        </form>
+
+        <p class="campaigns-meta" th:if="${total != null}">
+            <span th:text="${total}">0</span> campanha(s) no total
+            <span th:if="${totalPages != null and totalPages > 0}">
+                — página <span th:text="${page + 1}">1</span> de <span th:text="${totalPages}">1</span>
+            </span>
+        </p>
+
+        <div class="campaigns-pagination" th:if="${hasPrev or hasNext}">
+            <a th:if="${hasPrev}" class="button button-small button-secondary" th:href="|/campaigns?${prevQuery}|">Anterior</a>
+            <a th:if="${hasNext}" class="button button-small button-secondary" th:href="|/campaigns?${nextQuery}|">Próxima</a>
+        </div>
+
+        <div class="table-wrap campaigns-table-wrap" th:if="${campaigns != null and !campaigns.isEmpty()}">
+            <table class="preview-table campaigns-table">
+                <thead>
+                <tr>
+                    <th>ID camp.</th>
+                    <th>ID lote</th>
+                    <th>ID lead</th>
+                    <th>Loja</th>
+                    <th>Telefone</th>
+                    <th>Template</th>
+                    <th>Status</th>
+                    <th>SentAt</th>
+                    <th>DeliveredAt</th>
+                    <th>ReadAt</th>
+                    <th>RespondedAt</th>
+                    <th>FailedAt</th>
+                    <th>Falha / erro</th>
+                    <th>Categoria</th>
+                    <th>Agendado</th>
+                    <th>Última tentativa</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${campaigns}">
+                    <td th:text="${c.campaignId}">0</td>
+                    <td>
+                        <a th:if="${c.batchId != null}" th:href="|/batches/${c.batchId}|" th:text="${c.batchId}">1</a>
+                        <span th:if="${c.batchId == null}">—</span>
+                    </td>
+                    <td><a th:href="|/lead/${c.leadId}|" th:text="${c.leadId}">0</a></td>
+                    <td class="campaigns-cell-ellipsis" th:text="${c.lojaNome}" th:title="${c.lojaNome}">-</td>
+                    <td class="campaigns-cell-mono" th:text="${c.telefone}">-</td>
+                    <td class="campaigns-template-cell">
+                        <span th:text="${c.templateName}">t</span>
+                        <span class="campaigns-template-lang" th:text="|(${c.templateLanguage})|">(pt)</span>
+                    </td>
+                    <td>
+                        <span th:class="|campaign-status campaign-status--${c.status}|" th:text="${c.status}">-</span>
+                    </td>
+                    <td class="campaigns-date" th:text="${c.sentAt == null ? '—' : c.sentAt}">-</td>
+                    <td class="campaigns-date" th:text="${c.deliveredAt == null ? '—' : c.deliveredAt}">-</td>
+                    <td class="campaigns-date" th:text="${c.readAt == null ? '—' : c.readAt}">-</td>
+                    <td class="campaigns-date" th:text="${c.respondedAt == null ? '—' : c.respondedAt}">-</td>
+                    <td class="campaigns-date" th:text="${c.failedAt == null ? '—' : c.failedAt}">-</td>
+                    <td class="campaign-failure-cell"
+                        th:text="${(c.failureReason != null && !#strings.isEmpty(c.failureReason)) ? c.failureReason : '—'}"
+                        th:title="${(c.failureReason != null && !#strings.isEmpty(c.failureReason)) ? c.failureReason : ''}">—</td>
+                    <td th:text="${(c.failureCategory != null && !#strings.isEmpty(c.failureCategory)) ? c.failureCategory : '—'}">—</td>
+                    <td class="campaigns-date" th:text="${c.scheduledAt == null ? '—' : c.scheduledAt}">—</td>
+                    <td class="campaigns-date" th:text="${c.lastAttemptAt == null ? '—' : c.lastAttemptAt}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p th:if="${campaigns == null or campaigns.isEmpty()}">Nenhuma campanha encontrada com os filtros atuais.</p>
+
+        <div class="campaigns-pagination campaigns-pagination--bottom" th:if="${hasPrev or hasNext}">
+            <a th:if="${hasPrev}" class="button button-small button-secondary" th:href="|/campaigns?${prevQuery}|">Anterior</a>
+            <a th:if="${hasNext}" class="button button-small button-secondary" th:href="|/campaigns?${nextQuery}|">Próxima</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

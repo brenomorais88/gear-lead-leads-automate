@@ -32,6 +32,9 @@ dependencies {
     implementation("io.ktor:ktor-server-html-builder-jvm")
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
+    implementation("io.ktor:ktor-client-core-jvm")
+    implementation("io.ktor:ktor-client-cio-jvm")
+    implementation("io.ktor:ktor-client-content-negotiation-jvm")
 
     implementation("org.jetbrains.exposed:exposed-core:0.55.0")
     implementation("org.jetbrains.exposed:exposed-dao:0.55.0")
@@ -47,6 +50,14 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.5.8")
 
+    implementation("io.github.cdimascio:dotenv-java:3.0.0")
+
     testImplementation(kotlin("test"))
-    testImplementation("io.ktor:ktor-server-tests-jvm")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.ktor:ktor-client-mock-jvm:3.0.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
