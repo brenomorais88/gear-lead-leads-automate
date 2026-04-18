@@ -88,33 +88,15 @@ DEPLOY_IMAGE=ghcr.io/brenomorais88/gear-lead-leads-automate:integracao_whats \
 SKIP_CLONE=1 bash scripts/bootstrap-do-droplet.sh root@SEU_IP
 ```
 
-Backend + tunnel Cloudflare temporário (trycloudflare — **URL muda** a cada reinício; não use em produção para webhook Meta):
+**Produção com webhook Meta:** use DNS na Hostinger (ou outro provedor) com registro **A** do subdomínio apontando para o **IP público** da VPS e HTTPS no servidor com **Caddy** conforme **3c** acima. O `docker-compose.yml` deste repositório contém apenas o serviço `app`.
 
-```bash
-docker compose --profile tunnel up -d --build
-```
-
-Backend + **URL fixa** para webhook Meta (Cloudflare Named Tunnel + seu domínio):
-
-1. Tenha um **domínio** na Cloudflare (DNS gerenciado por eles).
-2. **Zero Trust** → *Networks* → *Tunnels* → *Create a tunnel* → escolha *Docker* e copie o **token**.
-3. No mesmo túnel, *Public Hostname*: subdomínio (ex.: `webhook.seudominio.com`), tipo **HTTP**, URL do serviço **`http://app:3000`** (serviço `app` na rede Docker; dentro do container o app escuta na porta **3000**).
-4. No servidor, no `.env`: `CLOUDFLARE_TUNNEL_TOKEN=<token colado>`.
-5. Subir:
-
-```bash
-docker compose --profile tunnel-stable up -d --build
-```
-
-Callback na Meta (veja sec. 8): `https://webhook.seudominio.com/webhooks/whatsapp` (ajuste o host). HTTPS é terminado na Cloudflare.
-
-**Alternativa sem Cloudflare:** VPS com **IP público estático** (AWS Lightsail, Hetzner, DigitalOcean, etc.) + domínio com registro **A** para esse IP + Nginx/Caddy + Let’s Encrypt na porta 443 encaminhando para `http://127.0.0.1:3000`. Em casa, IP de residência costuma ser **dinâmico**; IP “fixo” costuma ser opção paga do provedor ou migrar o app para VPS.
+Em casa, IP de residência costuma ser **dinâmico**; para URL estável costuma ser melhor hospedar na VPS com IP fixo.
 
 ## 4) Comandos operacionais
 
 - Subir/atualizar: `docker compose up -d --build`
 - Logs: `docker compose logs -f`
-- Logs de um serviço: `docker compose logs -f app` / `docker compose logs -f cloudflared`
+- Logs do app: `docker compose logs -f app`
 - Reiniciar: `docker compose restart`
 - Parar mantendo dados: `docker compose down`
 
@@ -135,15 +117,11 @@ Resposta esperada: `ok`
 - No compose, `./data` do host é montado em `/app/data`.
 - Reiniciar/atualizar containers **não** apaga o banco.
 
-## 7) URL pública com Cloudflared
+## 7) URL pública (DNS + HTTPS no servidor)
 
-Quando subir com profile `tunnel`, pegue a URL via logs:
-
-```bash
-docker compose logs -f cloudflared
-```
-
-Procure a linha com domínio `https://...trycloudflare.com`.
+1. Na Hostinger, crie o registro **A** do subdomínio (ex.: `webhook`) para o **IP público** da VPS (propagação pode levar alguns minutos).
+2. Com **Caddy** ativo (**3c**), o app fica acessível em `https://SEU_PUBLIC_HOST/`.
+3. Valide: `curl -fsS https://SEU_PUBLIC_HOST/health` deve retornar `ok`.
 
 ## 8) Configurar webhook da Meta
 
@@ -154,7 +132,7 @@ O app expõe **as duas** URLs abaixo (mesmo comportamento). Use **HTTPS** no pai
 | **Recomendada** | `https://SEU_DOMINIO/webhooks/whatsapp` |
 | Compatível (alias) | `https://SEU_DOMINIO/whatsapp/webhook` |
 
-1. **Callback URL** (campo no app WhatsApp / Cloud API): uma das linhas acima, com o seu domínio ou tunnel (ex.: `https://webhook.brenomorais.com.br/webhooks/whatsapp`).
+1. **Callback URL** (campo no app WhatsApp / Cloud API): uma das linhas acima com o seu domínio HTTPS (ex.: `https://webhook.seudominio.com.br/webhooks/whatsapp`).
 2. **Verify token:** exatamente o valor de `WHATSAPP_WEBHOOK_VERIFY_TOKEN` do `.env` (o mesmo usado na verificação GET).
 3. Salve no painel da Meta e use **“Verify and save”** (envia `GET` com `hub.mode`, `hub.verify_token`, `hub.challenge`).
 
@@ -173,4 +151,4 @@ Resposta esperada: corpo texto `pong` (HTTP 200). O mesmo comando funciona troca
 1. `docker compose ps` (serviços `up`/`healthy`)
 2. `curl http://localhost:3000/health` retorna `ok`
 3. Abrir painel em `http://localhost:3000`
-4. Se tunnel ativo, validar `GET /health` também pela URL pública
+4. Validar `GET /health` pela URL HTTPS pública (ex.: `curl -fsS https://SEU_PUBLIC_HOST/health`)

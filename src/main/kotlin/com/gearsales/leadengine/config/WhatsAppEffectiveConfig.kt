@@ -18,6 +18,9 @@ data class WhatsAppEffectiveConfig(
     val dailySendLimit: Int,
     val sendDelayMinMinutes: Int,
     val sendDelayMaxMinutes: Int,
+    val batchSize: Int,
+    val executionStartTime: String,
+    val executionEndTime: String,
     val servicePaused: Boolean,
 ) {
     fun messagesEndpointUrl(): String {

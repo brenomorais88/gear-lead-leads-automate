@@ -11,6 +11,9 @@ data class WhatsAppSettingsUpdateRequest(
     val dailySendLimit: Int,
     val sendDelayMinMinutes: Int,
     val sendDelayMaxMinutes: Int,
+    val batchSize: Int = 20,
+    val executionStartTime: String = "00:00",
+    val executionEndTime: String = "23:59",
 )
 
 @Serializable
@@ -21,6 +24,9 @@ data class WhatsAppSettingsApiResponse(
     val dailySendLimit: Int,
     val sendDelayMinMinutes: Int,
     val sendDelayMaxMinutes: Int,
+    val batchSize: Int,
+    val executionStartTime: String,
+    val executionEndTime: String,
     val servicePaused: Boolean,
     val createdAt: String,
     val updatedAt: String,
@@ -33,12 +39,20 @@ data class WhatsAppSettingsApiResponse(
             dailySendLimit = r.dailySendLimit,
             sendDelayMinMinutes = r.sendDelayMinMinutes,
             sendDelayMaxMinutes = r.sendDelayMaxMinutes,
+            batchSize = r.batchSize,
+            executionStartTime = r.executionStartTime,
+            executionEndTime = r.executionEndTime,
             servicePaused = r.servicePaused,
             createdAt = r.createdAt.toString(),
             updatedAt = r.updatedAt.toString(),
         )
     }
 }
+
+@Serializable
+data class WhatsAppOperationalDataResetRequest(
+    val confirmPhrase: String,
+)
 
 @Serializable
 data class WhatsAppSettingsValidationErrorResponse(

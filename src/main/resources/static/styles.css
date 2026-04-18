@@ -120,6 +120,12 @@ nav a:hover {
     color: #311b92;
 }
 
+.wa-global-engine__badge--outside_execution_window {
+    background: #eceff1;
+    border-color: #546e7a;
+    color: #263238;
+}
+
 .wa-global-engine__actions {
     display: flex;
     flex-wrap: wrap;
@@ -871,4 +877,35 @@ a.leads-row-link:hover {
     max-width: 18rem;
     white-space: pre-wrap;
     word-break: break-word;
+}
+
+.wa-cfg-danger {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0c4c4;
+}
+
+.wa-cfg-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1rem;
+}
+
+.wa-cfg-modal[hidden] {
+    display: none !important;
+}
+
+.wa-cfg-modal__panel {
+    background: #fff;
+    max-width: 28rem;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }

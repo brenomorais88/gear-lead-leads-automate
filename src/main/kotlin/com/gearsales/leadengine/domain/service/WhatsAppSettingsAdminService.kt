@@ -2,6 +2,7 @@ package com.gearsales.leadengine.domain.service
 
 import com.gearsales.leadengine.database.repositories.WhatsAppSettingsRepository
 import com.gearsales.leadengine.domain.model.WhatsappSettingsRecord
+import com.gearsales.leadengine.web.dto.WhatsAppOperationalDataResetRequest
 import com.gearsales.leadengine.web.dto.WhatsAppSettingsUpdateRequest
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -14,6 +15,9 @@ object WhatsAppOperationalSettingsValidator {
         dailySendLimit: Int,
         sendDelayMinMinutes: Int,
         sendDelayMaxMinutes: Int,
+        batchSize: Int,
+        executionStartTime: String,
+        executionEndTime: String,
     ): List<String> {
         val errors = mutableListOf<String>()
         if (phoneNumberId.isBlank()) errors.add("Phone Number ID não pode ser vazio.")
@@ -24,6 +28,10 @@ object WhatsAppOperationalSettingsValidator {
         if (sendDelayMaxMinutes < sendDelayMinMinutes) {
             errors.add("Delay máximo deve ser maior ou igual ao delay mínimo.")
         }
+        if (batchSize < 1) errors.add("Tamanho do lote (batchSize) deve ser pelo menos 1.")
+        errors.addAll(
+            ExecutionWindowEvaluator.validateFields(executionStartTime, executionEndTime),
+        )
         return errors
     }
 
@@ -34,6 +42,9 @@ object WhatsAppOperationalSettingsValidator {
         dailySendLimit = req.dailySendLimit,
         sendDelayMinMinutes = req.sendDelayMinMinutes,
         sendDelayMaxMinutes = req.sendDelayMaxMinutes,
+        batchSize = req.batchSize,
+        executionStartTime = req.executionStartTime,
+        executionEndTime = req.executionEndTime,
     )
 }
 
@@ -42,8 +53,11 @@ sealed class WhatsAppSettingsUpdateResult {
     data class Invalid(val errors: List<String>) : WhatsAppSettingsUpdateResult()
 }
 
+private const val RESET_CONFIRM_PHRASE = "APAGAR TODOS OS DADOS"
+
 class WhatsAppSettingsAdminService(
     private val repository: WhatsAppSettingsRepository,
+    private val operationalDataPurgeService: OperationalDataPurgeService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -60,6 +74,9 @@ class WhatsAppSettingsAdminService(
             dailySendLimit = req.dailySendLimit,
             sendDelayMinMinutes = req.sendDelayMinMinutes,
             sendDelayMaxMinutes = req.sendDelayMaxMinutes,
+            batchSize = req.batchSize.coerceAtLeast(1),
+            executionStartTime = req.executionStartTime,
+            executionEndTime = req.executionEndTime,
             now = now,
         )
         log.info("whatsapp_settings: atualização via API/UI concluída")
@@ -69,4 +86,17 @@ class WhatsAppSettingsAdminService(
     fun pause(): WhatsappSettingsRecord = repository.setServicePaused(true, LocalDateTime.now())
 
     fun resume(): WhatsappSettingsRecord = repository.setServicePaused(false, LocalDateTime.now())
+
+    fun purgeOperationalData(req: WhatsAppOperationalDataResetRequest): WhatsAppSettingsUpdateResult {
+        if (req.confirmPhrase.trim() != RESET_CONFIRM_PHRASE) {
+            return WhatsAppSettingsUpdateResult.Invalid(
+                listOf(
+                    "Confirmação inválida. Digite exatamente: $RESET_CONFIRM_PHRASE",
+                ),
+            )
+        }
+        operationalDataPurgeService.purgeAllOperationalData()
+        log.warn("whatsapp_settings: purge operacional executado (dados de leads/lotes/campanhas removidos)")
+        return WhatsAppSettingsUpdateResult.Ok(getCurrent())
+    }
 }

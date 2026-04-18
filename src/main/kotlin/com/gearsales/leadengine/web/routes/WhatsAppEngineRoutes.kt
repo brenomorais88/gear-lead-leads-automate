@@ -2,6 +2,7 @@ package com.gearsales.leadengine.web.routes
 
 import com.gearsales.leadengine.plugins.whatsAppEngineOperationalService
 import com.gearsales.leadengine.plugins.whatsappSettingsAdminService
+import com.gearsales.leadengine.web.dto.WhatsAppOperationalDataResetRequest
 import com.gearsales.leadengine.web.dto.WhatsAppSettingsApiResponse
 import com.gearsales.leadengine.web.dto.WhatsAppSettingsUpdateRequest
 import com.gearsales.leadengine.web.dto.WhatsAppSettingsValidationErrorResponse
@@ -49,5 +50,18 @@ fun Route.whatsAppEngineRoutes() {
     post("/whatsapp/settings/resume") {
         val rec = call.application.whatsappSettingsAdminService().resume()
         call.respond(HttpStatusCode.OK, WhatsAppSettingsApiResponse.from(rec))
+    }
+
+    post("/whatsapp/settings/reset-operational-data") {
+        val body = call.receive<WhatsAppOperationalDataResetRequest>()
+        when (val r = call.application.whatsappSettingsAdminService().purgeOperationalData(body)) {
+            is WhatsAppSettingsUpdateResult.Ok ->
+                call.respond(HttpStatusCode.OK, WhatsAppSettingsApiResponse.from(r.record))
+            is WhatsAppSettingsUpdateResult.Invalid ->
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    WhatsAppSettingsValidationErrorResponse(errors = r.errors),
+                )
+        }
     }
 }

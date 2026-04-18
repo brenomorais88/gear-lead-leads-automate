@@ -15,6 +15,7 @@
     function humanLabel(status) {
         var map = {
             PAUSED: "Pausado",
+            OUTSIDE_EXECUTION_WINDOW: "Fora da janela",
             IDLE: "Ocioso",
             WAITING_NEXT_SEND: "Aguardando próximo envio",
             READY_TO_SEND: "Pronto para enviar",
@@ -76,6 +77,12 @@
         }
         if (d.sendDelayMinMinutes != null && d.sendDelayMaxMinutes != null) {
             parts.push("Delay " + d.sendDelayMinMinutes + "–" + d.sendDelayMaxMinutes + " min");
+        }
+        if (d.batchSize != null && d.batchSize > 0) {
+            parts.push("Lote " + d.batchSize);
+        }
+        if (d.executionStartTime && d.executionEndTime) {
+            parts.push("Janela " + d.executionStartTime + "–" + d.executionEndTime);
         }
         return head.concat(parts).join(" · ");
     }

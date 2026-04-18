@@ -22,7 +22,7 @@ class WhatsAppSettingsRepository {
     }
 
     /**
-     * Cria a linha única a partir do seed (valores do .env na primeira subida).
+     * Cria a linha única a partir do seed (yaml na primeira subida, quando o banco está vazio).
      */
     fun ensureSingletonFromSeed(
         phoneNumberId: String,
@@ -31,6 +31,9 @@ class WhatsAppSettingsRepository {
         dailySendLimit: Int,
         sendDelayMinMinutes: Int,
         sendDelayMaxMinutes: Int,
+        batchSize: Int,
+        executionStartTime: String,
+        executionEndTime: String,
         servicePaused: Boolean,
         now: LocalDateTime,
     ): WhatsappSettingsRecord = transaction {
@@ -48,17 +51,23 @@ class WhatsAppSettingsRepository {
             it[WhatsappSettingsTable.dailySendLimit] = dailySendLimit
             it[WhatsappSettingsTable.sendDelayMinMinutes] = sendDelayMinMinutes
             it[WhatsappSettingsTable.sendDelayMaxMinutes] = sendDelayMaxMinutes
+            it[WhatsappSettingsTable.batchSize] = batchSize
+            it[WhatsappSettingsTable.executionStartTime] = executionStartTime.trim()
+            it[WhatsappSettingsTable.executionEndTime] = executionEndTime.trim()
             it[WhatsappSettingsTable.servicePaused] = servicePaused
             it[WhatsappSettingsTable.createdAt] = now
             it[WhatsappSettingsTable.updatedAt] = now
         }
         log.info(
-            "whatsapp_settings: registro inicial criado (id=1) a partir do .env/yaml — template={} lang={} limite={} delay={}-{} min paused={}",
+            "whatsapp_settings: registro inicial criado (id=1) a partir do yaml — template={} lang={} limite={} delay={}-{} min batch={} janela={}-{} paused={}",
             defaultTemplateName,
             defaultTemplateLanguage,
             dailySendLimit,
             sendDelayMinMinutes,
             sendDelayMaxMinutes,
+            batchSize,
+            executionStartTime,
+            executionEndTime,
             servicePaused,
         )
         WhatsappSettingsTable.selectAll()
@@ -82,6 +91,9 @@ class WhatsAppSettingsRepository {
         dailySendLimit: Int,
         sendDelayMinMinutes: Int,
         sendDelayMaxMinutes: Int,
+        batchSize: Int,
+        executionStartTime: String,
+        executionEndTime: String,
         now: LocalDateTime,
     ): WhatsappSettingsRecord = transaction {
         WhatsappSettingsTable.update({ WhatsappSettingsTable.id eq SINGLETON_ID }) {
@@ -91,15 +103,21 @@ class WhatsAppSettingsRepository {
             it[WhatsappSettingsTable.dailySendLimit] = dailySendLimit
             it[WhatsappSettingsTable.sendDelayMinMinutes] = sendDelayMinMinutes
             it[WhatsappSettingsTable.sendDelayMaxMinutes] = sendDelayMaxMinutes
+            it[WhatsappSettingsTable.batchSize] = batchSize
+            it[WhatsappSettingsTable.executionStartTime] = executionStartTime.trim()
+            it[WhatsappSettingsTable.executionEndTime] = executionEndTime.trim()
             it[WhatsappSettingsTable.updatedAt] = now
         }
         log.info(
-            "whatsapp_settings: configuração operacional atualizada (template={} lang={} limite={} delay={}-{})",
+            "whatsapp_settings: configuração operacional atualizada (template={} lang={} limite={} delay={}-{} batch={} janela={}-{})",
             defaultTemplateName,
             defaultTemplateLanguage,
             dailySendLimit,
             sendDelayMinMinutes,
             sendDelayMaxMinutes,
+            batchSize,
+            executionStartTime,
+            executionEndTime,
         )
         WhatsappSettingsTable.selectAll()
             .where { WhatsappSettingsTable.id eq SINGLETON_ID }
@@ -131,6 +149,9 @@ class WhatsAppSettingsRepository {
         dailySendLimit = this[WhatsappSettingsTable.dailySendLimit],
         sendDelayMinMinutes = this[WhatsappSettingsTable.sendDelayMinMinutes],
         sendDelayMaxMinutes = this[WhatsappSettingsTable.sendDelayMaxMinutes],
+        batchSize = this[WhatsappSettingsTable.batchSize],
+        executionStartTime = this[WhatsappSettingsTable.executionStartTime],
+        executionEndTime = this[WhatsappSettingsTable.executionEndTime],
         servicePaused = this[WhatsappSettingsTable.servicePaused],
         createdAt = this[WhatsappSettingsTable.createdAt],
         updatedAt = this[WhatsappSettingsTable.updatedAt],

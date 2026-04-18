@@ -21,6 +21,8 @@ data class WhatsAppEngineMetricsInput(
     val sentToday: Long,
     val dailyLimit: Int,
     val servicePaused: Boolean,
+    /** `true` quando a janela HH:mm está válida e o relógio atual está fora dela. */
+    val outsideExecutionWindow: Boolean,
     val pendingCount: Long,
     val sendingCount: Long,
     val failedCount: Long,
@@ -56,6 +58,10 @@ object WhatsAppEngineStatusResolver {
                 "Processando envio de campanha."
             }
             return WhatsAppEngineStatus.PROCESSING to detail
+        }
+        if (metrics.outsideExecutionWindow) {
+            return WhatsAppEngineStatus.OUTSIDE_EXECUTION_WINDOW to
+                "Fora da janela de execução configurada; disparos automáticos aguardam o horário permitido."
         }
         val remaining = (metrics.dailyLimit - metrics.sentToday).coerceAtLeast(0).toInt()
         val backlog = metrics.pendingCount + metrics.sendingCount
@@ -110,6 +116,9 @@ private object WhatsAppEngineStatusTransitionLogger {
             if (status == WhatsAppEngineStatus.PAUSED) {
                 log.info("WA engine paused (disparo manualmente suspenso)")
             }
+            if (status == WhatsAppEngineStatus.OUTSIDE_EXECUTION_WINDOW) {
+                log.info("WA engine outside execution window (sem envios automáticos neste horário)")
+            }
         }
     }
 }
@@ -143,6 +152,10 @@ class WhatsAppEngineOperationalService(
                 failedCampaigns = 0,
                 sendDelayMinMinutes = eff?.sendDelayMinMinutes ?: 0,
                 sendDelayMaxMinutes = eff?.sendDelayMaxMinutes ?: 0,
+                batchSize = eff?.batchSize ?: 0,
+                executionStartTime = eff?.executionStartTime ?: "",
+                executionEndTime = eff?.executionEndTime ?: "",
+                withinExecutionWindow = true,
                 workerPollIntervalSeconds = eff?.workerPollIntervalSeconds ?: 30L,
                 defaultTemplateName = eff?.defaultTemplateName,
                 defaultTemplateLanguage = eff?.defaultTemplateLanguage,
@@ -176,10 +189,16 @@ class WhatsAppEngineOperationalService(
         val sendingPtr = campaignRepository.peekSendingCampaign()
         val eligiblePtr = campaignRepository.peekEligibleForDispatch(now, staleBefore)
 
+        val windowFieldErrors = ExecutionWindowEvaluator.validateFields(eff.executionStartTime, eff.executionEndTime)
+        val withinExecutionWindow = windowFieldErrors.isEmpty() &&
+            ExecutionWindowEvaluator.isWithinWindow(now, zone, eff.executionStartTime, eff.executionEndTime)
+        val outsideExecutionWindow = windowFieldErrors.isEmpty() && !withinExecutionWindow
+
         val metrics = WhatsAppEngineMetricsInput(
             sentToday = sentToday,
             dailyLimit = dailyLimit,
             servicePaused = eff.servicePaused,
+            outsideExecutionWindow = outsideExecutionWindow,
             pendingCount = pendingCount,
             sendingCount = sendingCount,
             failedCount = failedCount,
@@ -232,6 +251,10 @@ class WhatsAppEngineOperationalService(
             failedCampaigns = failedCount,
             sendDelayMinMinutes = eff.sendDelayMinMinutes,
             sendDelayMaxMinutes = eff.sendDelayMaxMinutes,
+            batchSize = eff.batchSize,
+            executionStartTime = eff.executionStartTime,
+            executionEndTime = eff.executionEndTime,
+            withinExecutionWindow = withinExecutionWindow,
             workerPollIntervalSeconds = eff.workerPollIntervalSeconds,
             defaultTemplateName = eff.defaultTemplateName,
             defaultTemplateLanguage = eff.defaultTemplateLanguage,
@@ -269,6 +292,10 @@ class WhatsAppEngineOperationalService(
         if (eff.sendDelayMaxMinutes < eff.sendDelayMinMinutes) {
             reasons.add("delay máximo menor que mínimo (ajuste em /whatsapp/config)")
         }
+        if (eff.batchSize < 1) {
+            reasons.add("tamanho do lote (batchSize) deve ser pelo menos 1")
+        }
+        reasons.addAll(ExecutionWindowEvaluator.validateFields(eff.executionStartTime, eff.executionEndTime))
 
         if (reasons.isEmpty()) return null
         return reasons.joinToString("; ")

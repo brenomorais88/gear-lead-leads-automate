@@ -63,7 +63,8 @@ data class WhatsAppInfraSettings(
 }
 
 /**
- * Valores operacionais usados apenas para seed inicial da tabela [whatsapp_settings] (fallback .env).
+ * Valores usados apenas na **criação** da linha inicial em [whatsapp_settings] quando o banco está vazio.
+ * Fonte: `application.yaml` opcional; **não** lê variáveis operacionais do `.env` (evita duplicar a UI/banco).
  */
 data class WhatsAppOperationalSeed(
     val phoneNumberId: String,
@@ -72,43 +73,37 @@ data class WhatsAppOperationalSeed(
     val dailySendLimit: Int,
     val sendDelayMinMinutes: Int,
     val sendDelayMaxMinutes: Int,
+    val batchSize: Int,
+    val executionStartTime: String,
+    val executionEndTime: String,
     val servicePaused: Boolean = false,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(WhatsAppOperationalSeed::class.java)
 
-        fun loadFromEnvironment(config: ApplicationConfig): WhatsAppOperationalSeed {
-            fun env(name: String): String? = AppEnv.get(name)
+        fun loadFromYamlOnly(config: ApplicationConfig): WhatsAppOperationalSeed {
             fun cfg(path: String): String? =
                 config.propertyOrNull(path)?.getString()?.takeIf { it.isNotBlank() }
 
-            val phoneNumberId = env("WHATSAPP_PHONE_NUMBER_ID") ?: cfg("whatsapp.phoneNumberId").orEmpty()
-            val defaultTemplateName = env("WHATSAPP_DEFAULT_TEMPLATE_NAME")
-                ?: cfg("whatsapp.defaultTemplateName")
-                ?: "gear_lead_intro_v1"
-            val defaultTemplateLanguage = env("WHATSAPP_DEFAULT_TEMPLATE_LANGUAGE")
-                ?: cfg("whatsapp.defaultTemplateLanguage")
-                ?: "pt_BR"
-            val dailySendLimit = env("WHATSAPP_DAILY_SEND_LIMIT")?.toIntOrNull()
-                ?: cfg("whatsapp.dailySendLimit")?.toIntOrNull()
-                ?: 100
+            val phoneNumberId = cfg("whatsapp.phoneNumberId").orEmpty()
+            val defaultTemplateName = cfg("whatsapp.defaultTemplateName") ?: "gear_lead_intro_v1"
+            val defaultTemplateLanguage = cfg("whatsapp.defaultTemplateLanguage") ?: "pt_BR"
+            val dailySendLimit = cfg("whatsapp.dailySendLimit")?.toIntOrNull() ?: 100
 
-            var delayMin = env("WHATSAPP_SEND_DELAY_MIN_MINUTES")?.toIntOrNull()
-                ?: cfg("whatsapp.sendDelayMinMinutes")?.toIntOrNull()
-                ?: 5
-            var delayMax = env("WHATSAPP_SEND_DELAY_MAX_MINUTES")?.toIntOrNull()
-                ?: cfg("whatsapp.sendDelayMaxMinutes")?.toIntOrNull()
-                ?: 30
+            var delayMin = cfg("whatsapp.sendDelayMinMinutes")?.toIntOrNull() ?: 5
+            var delayMax = cfg("whatsapp.sendDelayMaxMinutes")?.toIntOrNull() ?: 30
             if (delayMax < delayMin) {
-                log.warn(
-                    "WHATSAPP_SEND_DELAY: max < min no ambiente; invertendo antes do seed no banco.",
-                )
+                log.warn("whatsapp seed: delay max < min no yaml; invertendo antes de gravar no banco.")
                 val t = delayMin
                 delayMin = delayMax
                 delayMax = t
             }
             delayMin = delayMin.coerceAtLeast(0)
             delayMax = delayMax.coerceAtLeast(delayMin)
+
+            val batchSize = cfg("whatsapp.batchSize")?.toIntOrNull()?.coerceAtLeast(1) ?: 20
+            val executionStartTime = cfg("whatsapp.executionStartTime") ?: "00:00"
+            val executionEndTime = cfg("whatsapp.executionEndTime") ?: "23:59"
 
             return WhatsAppOperationalSeed(
                 phoneNumberId = phoneNumberId.trim(),
@@ -117,6 +112,9 @@ data class WhatsAppOperationalSeed(
                 dailySendLimit = dailySendLimit,
                 sendDelayMinMinutes = delayMin,
                 sendDelayMaxMinutes = delayMax,
+                batchSize = batchSize,
+                executionStartTime = executionStartTime.trim(),
+                executionEndTime = executionEndTime.trim(),
                 servicePaused = false,
             )
         }

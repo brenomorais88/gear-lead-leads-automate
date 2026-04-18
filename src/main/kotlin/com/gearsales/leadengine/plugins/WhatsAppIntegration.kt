@@ -14,6 +14,7 @@ import com.gearsales.leadengine.domain.service.PrepareBatchCampaignService
 import com.gearsales.leadengine.domain.service.SendBatchCampaignService
 import com.gearsales.leadengine.domain.service.SendWhatsAppTemplateService
 import com.gearsales.leadengine.domain.service.WhatsAppCampaignReadService
+import com.gearsales.leadengine.domain.service.OperationalDataPurgeService
 import com.gearsales.leadengine.domain.service.WhatsAppEngineOperationalService
 import com.gearsales.leadengine.domain.service.WhatsAppSettingsAdminService
 import com.gearsales.leadengine.domain.service.WhatsAppWebhookService
@@ -45,7 +46,7 @@ private val whatsAppDispatchScope = CoroutineScope(SupervisorJob() + Dispatchers
 
 fun Application.configureWhatsAppIntegration() {
     val infra = WhatsAppInfraSettings.load(environment.config)
-    val seed = WhatsAppOperationalSeed.loadFromEnvironment(environment.config)
+    val seed = WhatsAppOperationalSeed.loadFromYamlOnly(environment.config)
     val waSettingsRepo = WhatsAppSettingsRepository()
     val now = LocalDateTime.now()
     waSettingsRepo.ensureSingletonFromSeed(
@@ -55,12 +56,18 @@ fun Application.configureWhatsAppIntegration() {
         dailySendLimit = seed.dailySendLimit,
         sendDelayMinMinutes = seed.sendDelayMinMinutes,
         sendDelayMaxMinutes = seed.sendDelayMaxMinutes,
+        batchSize = seed.batchSize,
+        executionStartTime = seed.executionStartTime,
+        executionEndTime = seed.executionEndTime,
         servicePaused = seed.servicePaused,
         now = now,
     )
     val whatsappConfig = WhatsAppAppConfig(infra, waSettingsRepo)
     attributes.put(WhatsAppAppConfigKey, whatsappConfig)
-    attributes.put(WhatsAppSettingsAdminServiceKey, WhatsAppSettingsAdminService(waSettingsRepo))
+    attributes.put(
+        WhatsAppSettingsAdminServiceKey,
+        WhatsAppSettingsAdminService(waSettingsRepo, OperationalDataPurgeService()),
+    )
 
     val json = Json {
         ignoreUnknownKeys = true

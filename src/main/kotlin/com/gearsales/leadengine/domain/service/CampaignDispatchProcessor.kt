@@ -20,6 +20,9 @@ class CampaignDispatchProcessor(
     @Volatile
     private var lastPauseLogAtMs: Long = 0L
 
+    @Volatile
+    private var lastOutsideWindowLogAtMs: Long = 0L
+
     suspend fun processNextEligible(trigger: SendTrigger): Boolean {
         val eff = whatsappConfig.effective()
         if (eff.servicePaused) {
@@ -31,6 +34,22 @@ class CampaignDispatchProcessor(
             return false
         }
         val now = LocalDateTime.now()
+        val windowErrors = ExecutionWindowEvaluator.validateFields(eff.executionStartTime, eff.executionEndTime)
+        if (windowErrors.isNotEmpty()) {
+            return false
+        }
+        if (!ExecutionWindowEvaluator.isWithinWindow(now, zone, eff.executionStartTime, eff.executionEndTime)) {
+            val t = System.currentTimeMillis()
+            if (t - lastOutsideWindowLogAtMs > 30_000L) {
+                log.info(
+                    "WA dispatch: fora da janela de execução ({}–{}); não processando novas campanhas",
+                    eff.executionStartTime,
+                    eff.executionEndTime,
+                )
+                lastOutsideWindowLogAtMs = t
+            }
+            return false
+        }
         val staleBefore = now.minusSeconds(eff.processingStaleSeconds)
         val campaignId = campaignRepository.tryClaimNextDispatchableCampaign(now, staleBefore) ?: return false
 

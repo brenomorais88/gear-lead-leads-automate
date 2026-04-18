@@ -3,6 +3,7 @@ package com.gearsales.leadengine.web.routes
 import com.gearsales.leadengine.database.repositories.BatchRepository
 import com.gearsales.leadengine.database.repositories.LeadRepository
 import com.gearsales.leadengine.domain.service.DailyBatchService
+import com.gearsales.leadengine.plugins.whatsappAppConfig
 import com.gearsales.leadengine.plugins.prepareBatchCampaignService
 import com.gearsales.leadengine.plugins.sendBatchCampaignService
 import com.gearsales.leadengine.plugins.whatsappCampaignReadService
@@ -13,6 +14,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respondText
+import io.ktor.server.application.Application
 import io.ktor.server.application.application
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -22,7 +24,8 @@ import java.time.format.DateTimeFormatter
 
 private val batchLeadRepository = LeadRepository()
 private val batchRepository = BatchRepository()
-private val dailyBatchService = DailyBatchService(batchLeadRepository, batchRepository)
+private fun dailyBatchService(app: Application) =
+    DailyBatchService(batchLeadRepository, batchRepository, app.whatsappAppConfig())
 
 private val batchDateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
@@ -48,7 +51,7 @@ fun Route.batchRoutes() {
         )
     }
     post("/batches/generate") {
-        val result = dailyBatchService.generateBatch()
+        val result = dailyBatchService(call.application).generateBatch()
         if (result == null) {
             call.respondRedirect("/batches?msg=sem_elegiveis", permanent = false)
         } else {

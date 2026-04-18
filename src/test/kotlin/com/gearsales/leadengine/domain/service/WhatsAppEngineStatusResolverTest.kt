@@ -54,6 +54,22 @@ class WhatsAppEngineStatusResolverTest {
     }
 
     @Test
+    fun outsideExecutionWindow_beforeReady() {
+        val m = baseMetrics().copy(
+            outsideExecutionWindow = true,
+            pendingCount = 1,
+            pendingWithoutSchedule = 0,
+            pendingScheduledFuture = 0,
+            eligibleCount = 1,
+            eligiblePtr = ptr,
+            sentToday = 0,
+        )
+        val (s, msg) = WhatsAppEngineStatusResolver.resolve(now, m, null)
+        assertEquals(WhatsAppEngineStatus.OUTSIDE_EXECUTION_WINDOW, s)
+        assertTrue(msg.contains("janela", ignoreCase = true))
+    }
+
+    @Test
     fun dailyLimitReached_withBacklog() {
         val m = baseMetrics().copy(
             sentToday = 20,
@@ -115,6 +131,7 @@ class WhatsAppEngineStatusResolverTest {
         sentToday = 0,
         dailyLimit = 20,
         servicePaused = false,
+        outsideExecutionWindow = false,
         pendingCount = 0,
         sendingCount = 0,
         failedCount = 0,

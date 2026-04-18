@@ -26,6 +26,9 @@ class WhatsAppAppConfig(
             dailySendLimit = r.dailySendLimit,
             sendDelayMinMinutes = r.sendDelayMinMinutes,
             sendDelayMaxMinutes = r.sendDelayMaxMinutes,
+            batchSize = r.batchSize,
+            executionStartTime = r.executionStartTime,
+            executionEndTime = r.executionEndTime,
             servicePaused = r.servicePaused,
         )
     }

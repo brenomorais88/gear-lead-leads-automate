@@ -10,7 +10,7 @@ storage:
   sqlitePath: "./data/lead-engine.db"
 
 # Opcional: infra em yaml; segredos preferir WHATSAPP_* no .env.
-# phoneNumberId / template / limite / delay: seed inicial da tabela whatsapp_settings (se vazia); runtime vem do banco.
+# phoneNumberId / template / limite / delay / batchSize / janela: seed inicial de whatsapp_settings (só se a tabela estiver vazia); runtime vem do banco.
 whatsapp:
   apiBaseUrl: "https://graph.facebook.com"
   apiVersion: "v21.0"
@@ -23,6 +23,9 @@ whatsapp:
   # Worker / fila (somente ambiente; não persistidos em whatsapp_settings)
   sendDelayMinMinutes: 5
   sendDelayMaxMinutes: 30
+  batchSize: 20
+  executionStartTime: "00:00"
+  executionEndTime: "23:59"
   workerPollIntervalSeconds: 30
   processingStaleSeconds: 600
   quotaDeferMinutes: 15

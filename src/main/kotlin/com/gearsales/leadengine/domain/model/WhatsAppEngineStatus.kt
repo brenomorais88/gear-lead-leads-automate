@@ -8,6 +8,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class WhatsAppEngineStatus {
     PAUSED,
+    /** Envios automáticos suspensos fora da janela diária configurada. */
+    OUTSIDE_EXECUTION_WINDOW,
     IDLE,
     WAITING_NEXT_SEND,
     READY_TO_SEND,
