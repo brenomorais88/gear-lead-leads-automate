@@ -152,3 +152,25 @@ Resposta esperada: corpo texto `pong` (HTTP 200). O mesmo comando funciona troca
 2. `curl http://localhost:3000/health` retorna `ok`
 3. Abrir painel em `http://localhost:3000`
 4. Validar `GET /health` pela URL HTTPS pública (ex.: `curl -fsS https://SEU_PUBLIC_HOST/health`)
+
+## 10) Auto-deploy via GitHub Actions (main)
+
+O workflow `.github/workflows/docker-publish.yml` faz:
+
+1. Build + push da imagem em `ghcr.io/<owner>/<repo>:sha-<commit>`
+2. Deploy automático no servidor (apenas em `main`)
+3. Verificações obrigatórias no final:
+   - imagem aplicada no container `gear-lead-engine-app` é exatamente a tag `sha-<commit>`
+   - `GET http://127.0.0.1:<APP_PORT>/health` retorna sucesso
+   - se `PUBLIC_HOST` estiver configurado: `GET https://<PUBLIC_HOST>/health` também retorna sucesso
+
+Secrets necessários no GitHub (Settings → Secrets and variables → Actions):
+
+- `DEPLOY_HOST`: IP/DNS do servidor
+- `DEPLOY_USER`: usuário SSH (ex.: `root`)
+- `DEPLOY_SSH_KEY`: chave privada SSH
+- `DEPLOY_PATH`: pasta do deploy no servidor (ex.: `/opt/gear-lead-leads-automate`)
+- `GHCR_USER`: usuário GitHub com permissão de pull no pacote GHCR
+- `GHCR_TOKEN`: token com `read:packages`
+- `APP_PORT` (opcional): porta pública, se diferente da `.env` do servidor
+- `PUBLIC_HOST` (opcional): domínio HTTPS para validar health externo
