@@ -48,6 +48,10 @@ fun testWhatsAppSettingsRepository(
         batchSize = batchSize,
         executionStartTime = executionStartTime,
         executionEndTime = executionEndTime,
+        inboundNotifyRecipients = "",
+        inboundNotifyTemplateName = "",
+        inboundNotifyTemplateLanguage = "pt_BR",
+        inboundNotifyBodyTemplate = "",
         servicePaused = servicePaused,
         now = LocalDateTime.now(),
     )

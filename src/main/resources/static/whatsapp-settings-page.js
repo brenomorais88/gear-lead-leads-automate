@@ -53,6 +53,10 @@
         document.getElementById("wa-cfg-batch").value = d.batchSize != null ? d.batchSize : 20;
         document.getElementById("wa-cfg-exec-start").value = d.executionStartTime || "00:00";
         document.getElementById("wa-cfg-exec-end").value = d.executionEndTime || "23:59";
+        document.getElementById("wa-cfg-inbound-recipients").value = d.inboundNotifyRecipients || "";
+        document.getElementById("wa-cfg-inbound-template").value = d.inboundNotifyTemplateName || "";
+        document.getElementById("wa-cfg-inbound-language").value = d.inboundNotifyTemplateLanguage || "pt_BR";
+        document.getElementById("wa-cfg-inbound-body-template").value = d.inboundNotifyBodyTemplate || "";
         if (serviceLine) {
             serviceLine.textContent = d.servicePaused
                 ? "Serviço pausado manualmente."
@@ -94,6 +98,10 @@
                 batchSize: parseInt(document.getElementById("wa-cfg-batch").value, 10),
                 executionStartTime: document.getElementById("wa-cfg-exec-start").value.trim(),
                 executionEndTime: document.getElementById("wa-cfg-exec-end").value.trim(),
+                inboundNotifyRecipients: document.getElementById("wa-cfg-inbound-recipients").value.trim(),
+                inboundNotifyTemplateName: document.getElementById("wa-cfg-inbound-template").value.trim(),
+                inboundNotifyTemplateLanguage: document.getElementById("wa-cfg-inbound-language").value.trim(),
+                inboundNotifyBodyTemplate: document.getElementById("wa-cfg-inbound-body-template").value.trim(),
             };
             var ve = validateClient(body);
             if (ve.length) {

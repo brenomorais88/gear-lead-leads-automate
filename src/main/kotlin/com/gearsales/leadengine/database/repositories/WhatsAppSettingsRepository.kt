@@ -34,6 +34,10 @@ class WhatsAppSettingsRepository {
         batchSize: Int,
         executionStartTime: String,
         executionEndTime: String,
+        inboundNotifyRecipients: String,
+        inboundNotifyTemplateName: String,
+        inboundNotifyTemplateLanguage: String,
+        inboundNotifyBodyTemplate: String,
         servicePaused: Boolean,
         now: LocalDateTime,
     ): WhatsappSettingsRecord = transaction {
@@ -54,6 +58,10 @@ class WhatsAppSettingsRepository {
             it[WhatsappSettingsTable.batchSize] = batchSize
             it[WhatsappSettingsTable.executionStartTime] = executionStartTime.trim()
             it[WhatsappSettingsTable.executionEndTime] = executionEndTime.trim()
+            it[WhatsappSettingsTable.inboundNotifyRecipients] = inboundNotifyRecipients.trim()
+            it[WhatsappSettingsTable.inboundNotifyTemplateName] = inboundNotifyTemplateName.trim()
+            it[WhatsappSettingsTable.inboundNotifyTemplateLanguage] = inboundNotifyTemplateLanguage.trim()
+            it[WhatsappSettingsTable.inboundNotifyBodyTemplate] = inboundNotifyBodyTemplate.trim()
             it[WhatsappSettingsTable.servicePaused] = servicePaused
             it[WhatsappSettingsTable.createdAt] = now
             it[WhatsappSettingsTable.updatedAt] = now
@@ -94,6 +102,10 @@ class WhatsAppSettingsRepository {
         batchSize: Int,
         executionStartTime: String,
         executionEndTime: String,
+        inboundNotifyRecipients: String,
+        inboundNotifyTemplateName: String,
+        inboundNotifyTemplateLanguage: String,
+        inboundNotifyBodyTemplate: String,
         now: LocalDateTime,
     ): WhatsappSettingsRecord = transaction {
         WhatsappSettingsTable.update({ WhatsappSettingsTable.id eq SINGLETON_ID }) {
@@ -106,6 +118,10 @@ class WhatsAppSettingsRepository {
             it[WhatsappSettingsTable.batchSize] = batchSize
             it[WhatsappSettingsTable.executionStartTime] = executionStartTime.trim()
             it[WhatsappSettingsTable.executionEndTime] = executionEndTime.trim()
+            it[WhatsappSettingsTable.inboundNotifyRecipients] = inboundNotifyRecipients.trim()
+            it[WhatsappSettingsTable.inboundNotifyTemplateName] = inboundNotifyTemplateName.trim()
+            it[WhatsappSettingsTable.inboundNotifyTemplateLanguage] = inboundNotifyTemplateLanguage.trim()
+            it[WhatsappSettingsTable.inboundNotifyBodyTemplate] = inboundNotifyBodyTemplate.trim()
             it[WhatsappSettingsTable.updatedAt] = now
         }
         log.info(
@@ -152,6 +168,10 @@ class WhatsAppSettingsRepository {
         batchSize = this[WhatsappSettingsTable.batchSize],
         executionStartTime = this[WhatsappSettingsTable.executionStartTime],
         executionEndTime = this[WhatsappSettingsTable.executionEndTime],
+        inboundNotifyRecipients = this[WhatsappSettingsTable.inboundNotifyRecipients],
+        inboundNotifyTemplateName = this[WhatsappSettingsTable.inboundNotifyTemplateName],
+        inboundNotifyTemplateLanguage = this[WhatsappSettingsTable.inboundNotifyTemplateLanguage],
+        inboundNotifyBodyTemplate = this[WhatsappSettingsTable.inboundNotifyBodyTemplate],
         servicePaused = this[WhatsappSettingsTable.servicePaused],
         createdAt = this[WhatsappSettingsTable.createdAt],
         updatedAt = this[WhatsappSettingsTable.updatedAt],

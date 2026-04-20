@@ -24,10 +24,11 @@ Edite o `.env` e preencha pelo menos:
 
 Opcional (notificação para operador quando lead responde):
 
-- `WHATSAPP_INBOUND_NOTIFY_RECIPIENTS` (um ou mais números no formato internacional; separador `,` ou `;`)
-- `WHATSAPP_INBOUND_NOTIFY_TEMPLATE_NAME` (template para aviso interno)
-- `WHATSAPP_INBOUND_NOTIFY_TEMPLATE_LANGUAGE` (ex.: `pt_BR`)
-- `WHATSAPP_INBOUND_NOTIFY_BODY_TEMPLATE` (1 parâmetro do corpo, com placeholders `{{lead_name}}`, `{{lead_phone}}`, `{{message}}`)
+- Configure na tela **Config. WhatsApp** (persistido no banco), seção de notificação inbound:
+  - destinatários (múltiplos telefones),
+  - template de notificação,
+  - idioma,
+  - texto do parâmetro com placeholders `{{lead_name}}`, `{{lead_phone}}`, `{{message}}`.
 
 ## 3) Subir stack
 

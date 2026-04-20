@@ -18,6 +18,10 @@ object WhatsAppOperationalSettingsValidator {
         batchSize: Int,
         executionStartTime: String,
         executionEndTime: String,
+        inboundNotifyRecipients: String = "",
+        inboundNotifyTemplateName: String = "",
+        inboundNotifyTemplateLanguage: String = "pt_BR",
+        inboundNotifyBodyTemplate: String = "",
     ): List<String> {
         val errors = mutableListOf<String>()
         if (phoneNumberId.isBlank()) errors.add("Phone Number ID não pode ser vazio.")
@@ -32,6 +36,15 @@ object WhatsAppOperationalSettingsValidator {
         errors.addAll(
             ExecutionWindowEvaluator.validateFields(executionStartTime, executionEndTime),
         )
+        if (inboundNotifyRecipients.length > 4000) {
+            errors.add("Lista de destinatários de notificação muito longa.")
+        }
+        if (inboundNotifyTemplateName.length > 128) {
+            errors.add("Template de notificação muito longo.")
+        }
+        if (inboundNotifyTemplateLanguage.length > 16) {
+            errors.add("Idioma do template de notificação inválido.")
+        }
         return errors
     }
 
@@ -45,6 +58,10 @@ object WhatsAppOperationalSettingsValidator {
         batchSize = req.batchSize,
         executionStartTime = req.executionStartTime,
         executionEndTime = req.executionEndTime,
+        inboundNotifyRecipients = req.inboundNotifyRecipients,
+        inboundNotifyTemplateName = req.inboundNotifyTemplateName,
+        inboundNotifyTemplateLanguage = req.inboundNotifyTemplateLanguage,
+        inboundNotifyBodyTemplate = req.inboundNotifyBodyTemplate,
     )
 }
 
@@ -77,6 +94,10 @@ class WhatsAppSettingsAdminService(
             batchSize = req.batchSize.coerceAtLeast(1),
             executionStartTime = req.executionStartTime,
             executionEndTime = req.executionEndTime,
+            inboundNotifyRecipients = req.inboundNotifyRecipients,
+            inboundNotifyTemplateName = req.inboundNotifyTemplateName,
+            inboundNotifyTemplateLanguage = req.inboundNotifyTemplateLanguage,
+            inboundNotifyBodyTemplate = req.inboundNotifyBodyTemplate,
             now = now,
         )
         log.info("whatsapp_settings: atualização via API/UI concluída")

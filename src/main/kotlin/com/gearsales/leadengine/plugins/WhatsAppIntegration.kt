@@ -60,6 +60,10 @@ fun Application.configureWhatsAppIntegration() {
         batchSize = seed.batchSize,
         executionStartTime = seed.executionStartTime,
         executionEndTime = seed.executionEndTime,
+        inboundNotifyRecipients = "",
+        inboundNotifyTemplateName = "",
+        inboundNotifyTemplateLanguage = "pt_BR",
+        inboundNotifyBodyTemplate = "",
         servicePaused = seed.servicePaused,
         now = now,
     )

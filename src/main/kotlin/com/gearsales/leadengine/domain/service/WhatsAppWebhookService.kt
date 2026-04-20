@@ -228,15 +228,16 @@ class WhatsAppWebhookService(
         if (items.isEmpty()) return
         val client = apiClient ?: return
         val appCfg = whatsappConfig ?: return
-        val recipients = parseRecipients(infra.inboundNotifyRecipients)
-        if (recipients.isEmpty()) return
         val eff = appCfg.effective()
-        val templateName = infra.inboundNotifyTemplateName?.trim().takeIf { !it.isNullOrBlank() }
+        val recipients = parseRecipients(eff.inboundNotifyRecipients)
+        if (recipients.isEmpty()) return
+        val templateName = eff.inboundNotifyTemplateName.trim().takeIf { it.isNotBlank() }
             ?: eff.defaultTemplateName
-        val templateLanguage = infra.inboundNotifyTemplateLanguage?.trim().takeIf { !it.isNullOrBlank() }
+        val templateLanguage = eff.inboundNotifyTemplateLanguage.trim().takeIf { it.isNotBlank() }
             ?: eff.defaultTemplateLanguage
         items.forEach { p ->
             val bodyParam = renderNotifyBody(
+                bodyTemplate = eff.inboundNotifyBodyTemplate,
                 leadName = p.leadName,
                 leadPhone = p.leadPhone,
                 inboundText = p.inboundText,
@@ -287,12 +288,13 @@ class WhatsAppWebhookService(
     }
 
     private fun renderNotifyBody(
+        bodyTemplate: String,
         leadName: String,
         leadPhone: String,
         inboundText: String,
     ): String {
         val fallback = "Lead: $leadName | Tel: $leadPhone | Msg: $inboundText"
-        val tpl = infra.inboundNotifyBodyTemplate?.trim().takeIf { !it.isNullOrBlank() } ?: fallback
+        val tpl = bodyTemplate.trim().takeIf { it.isNotBlank() } ?: fallback
         return tpl
             .replace("{{lead_name}}", leadName)
             .replace("{{lead_phone}}", leadPhone)

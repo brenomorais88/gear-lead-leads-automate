@@ -21,6 +21,10 @@ data class WhatsAppEffectiveConfig(
     val batchSize: Int,
     val executionStartTime: String,
     val executionEndTime: String,
+    val inboundNotifyRecipients: String,
+    val inboundNotifyTemplateName: String,
+    val inboundNotifyTemplateLanguage: String,
+    val inboundNotifyBodyTemplate: String,
     val servicePaused: Boolean,
 ) {
     fun messagesEndpointUrl(): String {

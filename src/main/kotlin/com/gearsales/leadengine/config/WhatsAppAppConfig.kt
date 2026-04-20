@@ -29,6 +29,10 @@ class WhatsAppAppConfig(
             batchSize = r.batchSize,
             executionStartTime = r.executionStartTime,
             executionEndTime = r.executionEndTime,
+            inboundNotifyRecipients = r.inboundNotifyRecipients,
+            inboundNotifyTemplateName = r.inboundNotifyTemplateName,
+            inboundNotifyTemplateLanguage = r.inboundNotifyTemplateLanguage,
+            inboundNotifyBodyTemplate = r.inboundNotifyBodyTemplate,
             servicePaused = r.servicePaused,
         )
     }

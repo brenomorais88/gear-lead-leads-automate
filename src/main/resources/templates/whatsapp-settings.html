@@ -49,6 +49,21 @@
                 <input type="text" name="executionEndTime" id="wa-cfg-exec-end" required autocomplete="off" placeholder="19:30"/>
             </label>
             <p class="muted">Fora dessa janela o worker não envia mensagens (pause manual e limite diário continuam valendo).</p>
+
+            <h3 class="dashboard-section-title">Notificação inbound para operador</h3>
+            <p class="muted">Quando um lead responder, o sistema envia um template para os telefones abaixo.</p>
+            <label>Destinatários (múltiplos; use vírgula, `;` ou quebra de linha)
+                <textarea name="inboundNotifyRecipients" id="wa-cfg-inbound-recipients" rows="3" placeholder="5511999999999,5511888888888"></textarea>
+            </label>
+            <label>Template de notificação
+                <input type="text" name="inboundNotifyTemplateName" id="wa-cfg-inbound-template" autocomplete="off"/>
+            </label>
+            <label>Idioma do template
+                <input type="text" name="inboundNotifyTemplateLanguage" id="wa-cfg-inbound-language" autocomplete="off" placeholder="pt_BR"/>
+            </label>
+            <label>Texto do parâmetro (placeholders: {{lead_name}}, {{lead_phone}}, {{message}})
+                <textarea name="inboundNotifyBodyTemplate" id="wa-cfg-inbound-body-template" rows="3" placeholder="Lead {{lead_name}} ({{lead_phone}}) respondeu: {{message}}"></textarea>
+            </label>
             <p>
                 <button type="submit" id="wa-cfg-save" class="button">Salvar</button>
             </p>
