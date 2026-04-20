@@ -59,6 +59,13 @@ data class WhatsAppWebhookInboundMessage(
     val timestamp: String? = null,
     val type: String? = null,
     val text: WhatsAppWebhookTextBody? = null,
+    val context: WhatsAppWebhookMessageContext? = null,
+)
+
+@Serializable
+data class WhatsAppWebhookMessageContext(
+    val from: String? = null,
+    val id: String? = null,
 )
 
 @Serializable

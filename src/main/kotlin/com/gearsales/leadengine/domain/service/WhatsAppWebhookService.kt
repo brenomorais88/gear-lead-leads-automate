@@ -37,6 +37,9 @@ class WhatsAppWebhookService(
     }
 
     fun handlePayload(root: WhatsAppWebhookRoot) {
+        if (root.entry.isEmpty()) {
+            log.debug("whatsapp webhook: payload sem entry")
+        }
         for (entry in root.entry) {
             for (change in entry.changes) {
                 val value = change.value ?: continue
@@ -113,15 +116,33 @@ class WhatsAppWebhookService(
     }
 
     private fun handleInboundMessage(msg: WhatsAppWebhookInboundMessage) {
-        val from = msg.from?.trim()?.takeIf { it.isNotEmpty() } ?: return
-        val lead = leadRepository.findFirstMatchingWhatsAppFrom(from) ?: return
+        val from = msg.from?.trim()?.takeIf { it.isNotEmpty() } ?: run {
+            log.warn("whatsapp webhook inbound: mensagem sem campo from (type={})", msg.type)
+            return
+        }
+        val contextWaMessageId = msg.context?.id?.trim()?.takeIf { it.isNotEmpty() }
+        val contextCampaign = contextWaMessageId?.let { campaignRepository.findByWaMessageId(it) }
+        val lead =
+            contextCampaign?.let { campaign ->
+                leadRepository.findById(campaign.leadId)
+            } ?: leadRepository.findFirstMatchingWhatsAppFrom(from)
+        if (lead == null) {
+            log.warn(
+                "whatsapp webhook inbound: sem lead para from={} contextId={}",
+                maskWaFrom(from),
+                maskWaId(contextWaMessageId),
+            )
+            return
+        }
         val now = LocalDateTime.now()
         val eventTime = parseMetaTimestamp(msg.timestamp) ?: now
         val note = extractInboundBody(msg)?.take(MAX_NOTE_CHARS)
 
         leadRepository.applyInboundWhatsAppReply(lead.id, now)
 
-        val latest = campaignRepository.findLatestOutboundCampaignForLead(lead.id)
+        val latest =
+            contextCampaign
+                ?: campaignRepository.findLatestOutboundCampaignForLead(lead.id)
         if (latest != null && latest.status != LeadCampaignStatus.RESPONDED) {
             campaignRepository.markCampaignResponded(latest.id, eventTime, now)
         }
@@ -139,6 +160,26 @@ class WhatsAppWebhookService(
             externalMessageId = msg.id,
             metadataJson = metadataJson,
         )
+        log.info(
+            "whatsapp webhook inbound: registrado para leadId={} type={} noteLen={}",
+            lead.id,
+            msg.type,
+            note?.length ?: 0,
+        )
+    }
+
+    /** Log seguro: só dígitos finais do wa_id. */
+    private fun maskWaFrom(from: String): String {
+        val d = from.filter { it.isDigit() }
+        if (d.length <= 4) return "****"
+        return "…${d.takeLast(4)}"
+    }
+
+    private fun maskWaId(id: String?): String {
+        val v = id?.trim().orEmpty()
+        if (v.isEmpty()) return "null"
+        if (v.length <= 8) return "…$v"
+        return "…${v.takeLast(8)}"
     }
 
     private fun extractInboundBody(msg: WhatsAppWebhookInboundMessage): String? =
