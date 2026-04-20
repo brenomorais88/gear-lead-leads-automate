@@ -1,6 +1,7 @@
 package com.gearsales.leadengine.domain.service
 
 import com.gearsales.leadengine.config.WhatsAppInfraSettings
+import com.gearsales.leadengine.config.WhatsAppAppConfig
 import com.gearsales.leadengine.database.repositories.LeadInteractionRepository
 import com.gearsales.leadengine.database.repositories.LeadMessageCampaignRepository
 import com.gearsales.leadengine.database.repositories.LeadRepository
@@ -11,22 +12,33 @@ import com.gearsales.leadengine.domain.model.LeadInteractionTypes
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookInboundMessage
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookRoot
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookStatusItem
+import com.gearsales.leadengine.whatsapp.cloudapi.WhatsAppCloudApiClient
+import com.gearsales.leadengine.whatsapp.cloudapi.WhatsAppCloudHttpResult
 import com.gearsales.leadengine.plugins.SystemEvents
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import kotlinx.coroutines.runBlocking
 
 class WhatsAppWebhookService(
     private val infra: WhatsAppInfraSettings,
     private val campaignRepository: LeadMessageCampaignRepository,
     private val leadRepository: LeadRepository,
     private val interactionRepository: LeadInteractionRepository,
+    private val apiClient: WhatsAppCloudApiClient? = null,
+    private val whatsappConfig: WhatsAppAppConfig? = null,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val zone: ZoneId = ZoneId.systemDefault()
+    private data class InboundNotificationPayload(
+        val leadId: Long,
+        val leadName: String,
+        val leadPhone: String,
+        val inboundText: String,
+    )
 
     fun verifyWebhook(mode: String?, token: String?, challenge: String?): String? {
         if (mode != "subscribe") return null
@@ -38,6 +50,7 @@ class WhatsAppWebhookService(
     }
 
     fun handlePayload(root: WhatsAppWebhookRoot) {
+        val inboundNotifications = mutableListOf<InboundNotificationPayload>()
         if (root.entry.isEmpty()) {
             log.debug("whatsapp webhook: payload sem entry")
         }
@@ -53,13 +66,16 @@ class WhatsAppWebhookService(
                 }
                 for (msg in value.messages) {
                     try {
-                        transaction { handleInboundMessage(msg) }
+                        transaction {
+                            handleInboundMessage(msg)?.let { inboundNotifications += it }
+                        }
                     } catch (e: Exception) {
                         log.warn("whatsapp webhook inbound: {}", e.message)
                     }
                 }
             }
         }
+        dispatchInboundNotifications(inboundNotifications)
     }
 
     private fun handleStatusUpdate(st: WhatsAppWebhookStatusItem) {
@@ -133,10 +149,10 @@ class WhatsAppWebhookService(
         }
     }
 
-    private fun handleInboundMessage(msg: WhatsAppWebhookInboundMessage) {
+    private fun handleInboundMessage(msg: WhatsAppWebhookInboundMessage): InboundNotificationPayload? {
         val from = msg.from?.trim()?.takeIf { it.isNotEmpty() } ?: run {
             log.warn("whatsapp webhook inbound: mensagem sem campo from (type={})", msg.type)
-            return
+            return null
         }
         val contextWaMessageId = msg.context?.id?.trim()?.takeIf { it.isNotEmpty() }
         val contextCampaign = contextWaMessageId?.let { campaignRepository.findByWaMessageId(it) }
@@ -160,7 +176,7 @@ class WhatsAppWebhookService(
                 maskWaId(contextWaMessageId),
                 phoneCandidates.size,
             )
-            return
+            return null
         }
         val now = LocalDateTime.now()
         val eventTime = parseMetaTimestamp(msg.timestamp) ?: now
@@ -200,6 +216,88 @@ class WhatsAppWebhookService(
             summary = "Resposta inbound registrada para lead ${lead.id}",
             details = note?.take(180),
         )
+        return InboundNotificationPayload(
+            leadId = lead.id,
+            leadName = lead.nomeFantasia?.takeIf { it.isNotBlank() } ?: lead.razaoSocial,
+            leadPhone = lead.telefoneOriginal ?: lead.telefoneNormalizado.orEmpty(),
+            inboundText = note ?: "(mensagem sem texto)",
+        )
+    }
+
+    private fun dispatchInboundNotifications(items: List<InboundNotificationPayload>) {
+        if (items.isEmpty()) return
+        val client = apiClient ?: return
+        val appCfg = whatsappConfig ?: return
+        val recipients = parseRecipients(infra.inboundNotifyRecipients)
+        if (recipients.isEmpty()) return
+        val eff = appCfg.effective()
+        val templateName = infra.inboundNotifyTemplateName?.trim().takeIf { !it.isNullOrBlank() }
+            ?: eff.defaultTemplateName
+        val templateLanguage = infra.inboundNotifyTemplateLanguage?.trim().takeIf { !it.isNullOrBlank() }
+            ?: eff.defaultTemplateLanguage
+        items.forEach { p ->
+            val bodyParam = renderNotifyBody(
+                leadName = p.leadName,
+                leadPhone = p.leadPhone,
+                inboundText = p.inboundText,
+            )
+            recipients.forEach { to ->
+                val out = runBlocking {
+                    client.sendTemplateMessage(
+                        toDigits = to,
+                        templateName = templateName,
+                        languageCode = templateLanguage,
+                        bodyParameterText = bodyParam,
+                        requestId = "inbound-notify-${p.leadId}",
+                    )
+                }
+                when (out) {
+                    is WhatsAppCloudHttpResult.Success -> {
+                        SystemEvents.info(
+                            category = "WHATSAPP_NOTIFY",
+                            summary = "Notificação de resposta enviada para $to",
+                            details = "lead=${p.leadId}",
+                        )
+                    }
+                    is WhatsAppCloudHttpResult.ApiError -> {
+                        val d = out.parsed?.message ?: out.rawBody.take(300)
+                        log.warn("whatsapp notify failed to={} lead={} detail={}", to, p.leadId, d)
+                        SystemEvents.warn(
+                            category = "WHATSAPP_NOTIFY",
+                            summary = "Falha ao notificar resposta para $to",
+                            details = d,
+                        )
+                    }
+                    WhatsAppCloudHttpResult.MissingCredentials -> {
+                        log.warn("whatsapp notify skipped: missing credentials")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun parseRecipients(raw: String?): List<String> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return raw.split(',', ';', '\n', '\t', ' ')
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .map { it.filter(Char::isDigit) }
+            .filter { it.length >= 12 }
+            .distinct()
+    }
+
+    private fun renderNotifyBody(
+        leadName: String,
+        leadPhone: String,
+        inboundText: String,
+    ): String {
+        val fallback = "Lead: $leadName | Tel: $leadPhone | Msg: $inboundText"
+        val tpl = infra.inboundNotifyBodyTemplate?.trim().takeIf { !it.isNullOrBlank() } ?: fallback
+        return tpl
+            .replace("{{lead_name}}", leadName)
+            .replace("{{lead_phone}}", leadPhone)
+            .replace("{{message}}", inboundText)
+            .take(400)
     }
 
     /** Log seguro: só dígitos finais do wa_id. */

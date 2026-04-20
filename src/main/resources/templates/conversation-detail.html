@@ -10,7 +10,7 @@
         <p><a href="/conversations">← Voltar</a></p>
         <h1 th:text="${leadName}">Conversa</h1>
         <p><strong>Lead:</strong> <span th:text="${leadId}">0</span> · <strong>Telefone:</strong> <span th:text="${leadPhone}">-</span></p>
-        <p th:if="${leadCount != null and leadCount > 1}">
+        <p class="conversation-grouping" th:if="${leadCount != null and leadCount > 1}">
             <strong>Agrupamento por telefone:</strong> <span th:text="${leadCount}">2</span> leads
             <span th:text="${#strings.listJoin(leadNames, ', ')}"></span>
         </p>

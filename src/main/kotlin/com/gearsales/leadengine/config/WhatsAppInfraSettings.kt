@@ -16,6 +16,10 @@ data class WhatsAppInfraSettings(
     val workerPollIntervalSeconds: Long,
     val processingStaleSeconds: Long,
     val quotaDeferMinutes: Int,
+    val inboundNotifyRecipients: String? = null,
+    val inboundNotifyTemplateName: String? = null,
+    val inboundNotifyTemplateLanguage: String? = null,
+    val inboundNotifyBodyTemplate: String? = null,
 ) {
     companion object {
         private val log = LoggerFactory.getLogger(WhatsAppInfraSettings::class.java)
@@ -47,6 +51,14 @@ data class WhatsAppInfraSettings(
             val quotaDefer = env("WHATSAPP_QUOTA_DEFER_MINUTES")?.toIntOrNull()
                 ?: cfg("whatsapp.quotaDeferMinutes")?.toIntOrNull()
                 ?: 15
+            val inboundNotifyRecipients = env("WHATSAPP_INBOUND_NOTIFY_RECIPIENTS")
+                ?: cfg("whatsapp.inboundNotifyRecipients")
+            val inboundNotifyTemplateName = env("WHATSAPP_INBOUND_NOTIFY_TEMPLATE_NAME")
+                ?: cfg("whatsapp.inboundNotifyTemplateName")
+            val inboundNotifyTemplateLanguage = env("WHATSAPP_INBOUND_NOTIFY_TEMPLATE_LANGUAGE")
+                ?: cfg("whatsapp.inboundNotifyTemplateLanguage")
+            val inboundNotifyBodyTemplate = env("WHATSAPP_INBOUND_NOTIFY_BODY_TEMPLATE")
+                ?: cfg("whatsapp.inboundNotifyBodyTemplate")
 
             return WhatsAppInfraSettings(
                 apiBaseUrl = apiBaseUrl,
@@ -57,6 +69,10 @@ data class WhatsAppInfraSettings(
                 workerPollIntervalSeconds = workerPoll.coerceAtLeast(5L),
                 processingStaleSeconds = stale.coerceAtLeast(60L),
                 quotaDeferMinutes = quotaDefer.coerceAtLeast(1),
+                inboundNotifyRecipients = inboundNotifyRecipients,
+                inboundNotifyTemplateName = inboundNotifyTemplateName,
+                inboundNotifyTemplateLanguage = inboundNotifyTemplateLanguage,
+                inboundNotifyBodyTemplate = inboundNotifyBodyTemplate,
             )
         }
     }

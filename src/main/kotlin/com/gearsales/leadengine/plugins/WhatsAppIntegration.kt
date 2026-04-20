@@ -117,6 +117,8 @@ fun Application.configureWhatsAppIntegration() {
         campaignRepository = campaignRepository,
         leadRepository = leadRepository,
         interactionRepository = interactionRepository,
+        apiClient = apiClient,
+        whatsappConfig = whatsappConfig,
     )
     attributes.put(WhatsAppWebhookServiceKey, webhookService)
     val engineOperationalService = WhatsAppEngineOperationalService(

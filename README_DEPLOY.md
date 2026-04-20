@@ -22,6 +22,13 @@ Edite o `.env` e preencha pelo menos:
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
 - `WHATSAPP_BUSINESS_ACCOUNT_ID` (se aplicável no seu fluxo)
 
+Opcional (notificação para operador quando lead responde):
+
+- `WHATSAPP_INBOUND_NOTIFY_RECIPIENTS` (um ou mais números no formato internacional; separador `,` ou `;`)
+- `WHATSAPP_INBOUND_NOTIFY_TEMPLATE_NAME` (template para aviso interno)
+- `WHATSAPP_INBOUND_NOTIFY_TEMPLATE_LANGUAGE` (ex.: `pt_BR`)
+- `WHATSAPP_INBOUND_NOTIFY_BODY_TEMPLATE` (1 parâmetro do corpo, com placeholders `{{lead_name}}`, `{{lead_phone}}`, `{{message}}`)
+
 ## 3) Subir stack
 
 ### 3a) Local / servidor com build (Gradle no Docker — exige CPU/RAM)
