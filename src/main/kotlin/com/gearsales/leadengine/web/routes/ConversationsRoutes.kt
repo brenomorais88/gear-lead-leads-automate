@@ -16,6 +16,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.thymeleaf.ThymeleafContent
+import java.time.LocalDateTime
 
 private val conversationsLeadRepo = LeadRepository()
 private val conversationsInteractionRepo = LeadInteractionRepository()
@@ -27,23 +28,64 @@ private val whatsappInteractionTypes = setOf(
     LeadInteractionTypes.WHATSAPP_MANUAL_SENT,
 )
 
+private data class ConversationThreadRow(
+    val representativeLeadId: Long,
+    val title: String,
+    val razaoSocial: String,
+    val telefoneDisplay: String,
+    val telefoneNormalized: String?,
+    val preview: String,
+    val lastType: String,
+    val lastDirection: String,
+    val lastAt: LocalDateTime,
+    val leadsCount: Int,
+)
+
 fun Route.conversationsRoutes() {
     get("/conversations") {
         val q = call.request.queryParameters["q"]?.trim()
         val previews = conversationsInteractionRepo.listRecentWhatsAppThreads(limit = 200, q = q)
-        val rows = previews.mapNotNull { p ->
+        val rawRows = previews.mapNotNull { p ->
             val lead = conversationsLeadRepo.findById(p.leadId) ?: return@mapNotNull null
             val title = lead.nomeFantasia?.takeIf { it.isNotBlank() } ?: lead.razaoSocial
             val preview = p.note?.takeIf { it.isNotBlank() } ?: p.result.orEmpty()
+            ConversationThreadRow(
+                representativeLeadId = lead.id,
+                title = title,
+                razaoSocial = lead.razaoSocial,
+                telefoneDisplay = (lead.telefoneOriginal ?: lead.telefoneNormalizado ?: ""),
+                telefoneNormalized = lead.telefoneNormalizado,
+                preview = preview,
+                lastType = p.interactionType,
+                lastDirection = (p.direction ?: ""),
+                lastAt = p.createdAt,
+                leadsCount = 1,
+            )
+        }
+        val grouped = rawRows.groupBy { row ->
+            row.telefoneNormalized?.takeIf { it.isNotBlank() } ?: "lead:${row.representativeLeadId}"
+        }.values.map { group ->
+            val newest = group.maxByOrNull { it.lastAt }!!
+            val phoneKey = newest.telefoneNormalized
+            val count = if (phoneKey.isNullOrBlank()) {
+                group.size
+            } else {
+                conversationsLeadRepo.listByTelefoneNormalizado(phoneKey).size
+            }
+            newest.copy(leadsCount = count)
+        }.sortedByDescending { it.lastAt }
+
+        val rows = grouped.map { row ->
             mapOf(
-                "leadId" to lead.id,
-                "title" to title,
-                "razaoSocial" to lead.razaoSocial,
-                "telefone" to (lead.telefoneOriginal ?: lead.telefoneNormalizado ?: ""),
-                "preview" to preview,
-                "lastType" to p.interactionType,
-                "lastDirection" to (p.direction ?: ""),
-                "lastAt" to p.createdAt.toString(),
+                "leadId" to row.representativeLeadId,
+                "title" to row.title,
+                "razaoSocial" to row.razaoSocial,
+                "telefone" to row.telefoneDisplay,
+                "preview" to row.preview,
+                "lastType" to row.lastType,
+                "lastDirection" to row.lastDirection,
+                "lastAt" to row.lastAt.toString(),
+                "leadsCount" to row.leadsCount,
             )
         }
         call.respond(
@@ -69,8 +111,15 @@ fun Route.conversationsRoutes() {
             call.respondText("Lead não encontrado.", status = io.ktor.http.HttpStatusCode.NotFound)
             return@get
         }
-        val all = conversationsInteractionRepo.listByLeadId(id)
-        val messages = all.asReversed()
+        val conversationLeads = lead.telefoneNormalizado
+            ?.takeIf { it.isNotBlank() }
+            ?.let { conversationsLeadRepo.listByTelefoneNormalizado(it) }
+            ?.takeIf { it.isNotEmpty() }
+            ?: listOf(lead)
+        val leadIds = conversationLeads.map { it.id }
+        val all = leadIds.flatMap { conversationsInteractionRepo.listByLeadId(it) }
+        val messages = all
+            .sortedBy { it.createdAt }
             .filter { it.interactionType in whatsappInteractionTypes }
             .map {
                 val direction = it.direction ?: if (it.interactionType == LeadInteractionTypes.WHATSAPP_INBOUND_MESSAGE) {
@@ -82,19 +131,26 @@ fun Route.conversationsRoutes() {
                     "id" to it.id,
                     "direction" to direction,
                     "type" to it.interactionType,
+                    "leadId" to it.leadId,
                     "text" to (it.note?.takeIf { n -> n.isNotBlank() } ?: it.result.orEmpty()),
                     "createdAt" to it.createdAt.toString(),
                 )
             }
         val status = call.request.queryParameters["status"].orEmpty()
+        val leadNames = conversationLeads.map {
+            it.nomeFantasia?.takeIf { n -> n.isNotBlank() } ?: it.razaoSocial
+        }
+        val primaryName = leadNames.firstOrNull() ?: (lead.nomeFantasia?.takeIf { it.isNotBlank() } ?: lead.razaoSocial)
         call.respond(
             ThymeleafContent(
                 "conversation-detail",
                 mapOf(
                     "title" to "Conversa",
                     "leadId" to lead.id,
-                    "leadName" to (lead.nomeFantasia?.takeIf { it.isNotBlank() } ?: lead.razaoSocial),
+                    "leadName" to primaryName,
                     "leadPhone" to (lead.telefoneNormalizado ?: lead.telefoneOriginal ?: ""),
+                    "leadNames" to leadNames,
+                    "leadCount" to conversationLeads.size,
                     "messages" to messages,
                     "status" to status,
                 ),

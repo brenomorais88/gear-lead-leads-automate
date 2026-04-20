@@ -154,6 +154,15 @@ class LeadRepository {
         }
     }
 
+    fun listByTelefoneNormalizado(telefoneNormalizado: String): List<LeadRecord> = dbQuery {
+        val p = telefoneNormalizado.trim()
+        if (p.isEmpty()) return@dbQuery emptyList()
+        LeadsTable.selectAll()
+            .where { LeadsTable.telefoneNormalizado eq p }
+            .orderBy(LeadsTable.id, SortOrder.ASC)
+            .map { it.toLeadRecord() }
+    }
+
     fun findTopEligibleForSorteio(limit: Int): List<Long> = dbQuery {
         val priorityRank = Case()
             .When(LeadsTable.prioridade eq LeadPriority.ALTA.name, intLiteral(1))

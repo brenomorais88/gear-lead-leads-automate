@@ -21,6 +21,7 @@
                     <th>Última mensagem</th>
                     <th>Tipo</th>
                     <th>Data/hora</th>
+                    <th>Leads</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -34,6 +35,7 @@
                     <td class="conversations-preview" th:text="${t.preview}">-</td>
                     <td th:text="${t.lastType}">-</td>
                     <td th:text="${t.lastAt}">-</td>
+                    <td th:text="${t.leadsCount}">1</td>
                     <td><a th:href="|/conversations/${t.leadId}|" class="button button-small button-secondary">Abrir</a></td>
                 </tr>
                 </tbody>

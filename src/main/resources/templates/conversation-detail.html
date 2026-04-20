@@ -10,6 +10,10 @@
         <p><a href="/conversations">← Voltar</a></p>
         <h1 th:text="${leadName}">Conversa</h1>
         <p><strong>Lead:</strong> <span th:text="${leadId}">0</span> · <strong>Telefone:</strong> <span th:text="${leadPhone}">-</span></p>
+        <p th:if="${leadCount != null and leadCount > 1}">
+            <strong>Agrupamento por telefone:</strong> <span th:text="${leadCount}">2</span> leads
+            <span th:text="${#strings.listJoin(leadNames, ', ')}"></span>
+        </p>
 
         <p class="flash-msg" th:if="${status == 'sent'}">Mensagem enviada com sucesso.</p>
         <p class="flash-msg" th:if="${status == 'error'}">Falha ao enviar mensagem. Veja Eventos/Logs.</p>
@@ -22,6 +26,7 @@
                 <header>
                     <strong th:text="${m.direction}">OUTBOUND</strong>
                     <span th:text="${m.type}">TYPE</span>
+                    <span th:text="|lead ${m.leadId}|">lead 0</span>
                     <span th:text="${m.createdAt}">-</span>
                 </header>
                 <p th:text="${m.text}">...</p>
