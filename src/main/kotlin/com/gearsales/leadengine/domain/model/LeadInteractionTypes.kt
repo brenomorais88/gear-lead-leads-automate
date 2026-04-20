@@ -8,6 +8,7 @@ object LeadInteractionTypes {
     const val WHATSAPP_TEMPLATE_SENT = "WHATSAPP_TEMPLATE_SENT"
     const val WHATSAPP_SEND_FAILED = "WHATSAPP_SEND_FAILED"
     const val WHATSAPP_INBOUND_MESSAGE = "WHATSAPP_INBOUND_MESSAGE"
+    const val WHATSAPP_MANUAL_SENT = "WHATSAPP_MANUAL_SENT"
 }
 
 object InteractionDirection {

@@ -6,6 +6,7 @@ import com.gearsales.leadengine.web.routes.dashboardRoutes
 import com.gearsales.leadengine.web.routes.eventsRoutes
 import com.gearsales.leadengine.web.routes.importRoutes
 import com.gearsales.leadengine.web.routes.leadRoutes
+import com.gearsales.leadengine.web.routes.conversationsRoutes
 import com.gearsales.leadengine.web.routes.whatsAppEngineRoutes
 import com.gearsales.leadengine.web.routes.whatsAppSettingsWebRoutes
 import com.gearsales.leadengine.web.routes.whatsAppReadRoutes
@@ -25,6 +26,7 @@ fun Application.configureRouting() {
         dashboardRoutes()
         importRoutes()
         eventsRoutes()
+        conversationsRoutes()
         leadRoutes()
         batchRoutes()
         campaignsWebRoutes()

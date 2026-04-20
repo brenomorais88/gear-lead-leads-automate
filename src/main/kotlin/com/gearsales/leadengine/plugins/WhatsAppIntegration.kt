@@ -41,6 +41,7 @@ val WhatsAppCampaignReadServiceKey = AttributeKey<WhatsAppCampaignReadService>("
 val WhatsAppEngineOperationalServiceKey = AttributeKey<WhatsAppEngineOperationalService>("WhatsAppEngineOperationalService")
 val WhatsAppAppConfigKey = AttributeKey<WhatsAppAppConfig>("WhatsAppAppConfig")
 val WhatsAppSettingsAdminServiceKey = AttributeKey<WhatsAppSettingsAdminService>("WhatsAppSettingsAdminService")
+val WhatsAppCloudApiClientKey = AttributeKey<WhatsAppCloudApiClient>("WhatsAppCloudApiClient")
 
 private val whatsAppDispatchScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -82,6 +83,7 @@ fun Application.configureWhatsAppIntegration() {
         }
     }
     val apiClient = WhatsAppCloudApiClient(httpClient, json, whatsappConfig)
+    attributes.put(WhatsAppCloudApiClientKey, apiClient)
     val sendService = SendWhatsAppTemplateService(
         whatsappConfig = whatsappConfig,
         apiClient = apiClient,
@@ -161,3 +163,6 @@ fun Application.whatsappAppConfig(): WhatsAppAppConfig =
 
 fun Application.whatsappSettingsAdminService(): WhatsAppSettingsAdminService =
     attributes[WhatsAppSettingsAdminServiceKey]
+
+fun Application.whatsappCloudApiClient(): WhatsAppCloudApiClient =
+    attributes[WhatsAppCloudApiClientKey]

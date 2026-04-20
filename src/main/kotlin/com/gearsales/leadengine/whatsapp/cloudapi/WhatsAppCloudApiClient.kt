@@ -9,6 +9,8 @@ import com.gearsales.leadengine.whatsapp.cloudapi.dto.WhatsAppTemplateComponent
 import com.gearsales.leadengine.whatsapp.cloudapi.dto.WhatsAppTemplateLanguage
 import com.gearsales.leadengine.whatsapp.cloudapi.dto.WhatsAppTemplateParameter
 import com.gearsales.leadengine.whatsapp.cloudapi.dto.WhatsAppTemplateSendRequest
+import com.gearsales.leadengine.whatsapp.cloudapi.dto.WhatsAppTextBody
+import com.gearsales.leadengine.whatsapp.cloudapi.dto.WhatsAppTextSendRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -39,6 +41,65 @@ class WhatsAppCloudApiClient(
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+
+    suspend fun sendTextMessage(
+        toDigits: String,
+        textBody: String,
+        requestId: String = "noid",
+    ): WhatsAppCloudHttpResult {
+        val eff = whatsappConfig.effective()
+        val token = eff.accessToken
+        if (token.isNullOrBlank() || eff.phoneNumberId.isBlank()) {
+            return WhatsAppCloudHttpResult.MissingCredentials
+        }
+
+        val request = WhatsAppTextSendRequest(
+            to = toDigits,
+            text = WhatsAppTextBody(body = textBody),
+        )
+        val url = eff.messagesEndpointUrl()
+        log.info(
+            "WA HTTP {} -> POST url={} phoneNumberIdLast4={} toMasked={} type=text bodyChars={}",
+            requestId,
+            url,
+            eff.phoneNumberId.takeLast(4),
+            maskDest(toDigits),
+            textBody.length,
+        )
+        val response: HttpResponse = httpClient.post(url) {
+            header(HttpHeaders.Authorization, "Bearer $token")
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(request)
+        }
+        val text = response.bodyAsText()
+        val bodyPreview = text.take(4000)
+        if (!response.status.isSuccess()) {
+            log.warn(
+                "WA HTTP {} <- error status={} bodyChars={} bodyPreview={}",
+                requestId,
+                response.status.value,
+                text.length,
+                bodyPreview,
+            )
+            val parsed = runCatching {
+                json.decodeFromString(WhatsAppSendErrorEnvelope.serializer(), text).error
+            }.getOrNull()
+            return WhatsAppCloudHttpResult.ApiError(response.status.value, text, parsed)
+        }
+        val success = runCatching {
+            json.decodeFromString(WhatsAppSendSuccessResponse.serializer(), text)
+        }.getOrElse {
+            log.warn("WA HTTP {} <- 200 but JSON parse failed preview={}", requestId, bodyPreview)
+            return WhatsAppCloudHttpResult.ApiError(response.status.value, text, null)
+        }
+        log.info(
+            "WA HTTP {} <- ok status=200 wamid={} bodyPreview={}",
+            requestId,
+            success.messages?.firstOrNull()?.id,
+            bodyPreview.take(500),
+        )
+        return WhatsAppCloudHttpResult.Success(success)
+    }
 
     suspend fun sendTemplateMessage(
         toDigits: String,

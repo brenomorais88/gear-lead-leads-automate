@@ -12,6 +12,19 @@ data class WhatsAppTemplateSendRequest(
 )
 
 @Serializable
+data class WhatsAppTextSendRequest(
+    @SerialName("messaging_product") val messagingProduct: String = "whatsapp",
+    val to: String,
+    val type: String = "text",
+    val text: WhatsAppTextBody,
+)
+
+@Serializable
+data class WhatsAppTextBody(
+    val body: String,
+)
+
+@Serializable
 data class WhatsAppTemplateBlock(
     val name: String,
     val language: WhatsAppTemplateLanguage,

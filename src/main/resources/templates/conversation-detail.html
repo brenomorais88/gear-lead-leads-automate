@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{base :: head}"></head>
+<body>
+<header th:replace="~{base :: header}"></header>
+<nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
+<main class="conversation-main">
+    <section>
+        <p><a th:href="@{/conversations}">← Voltar</a></p>
+        <h1 th:text="${leadName}">Conversa</h1>
+        <p><strong>Lead:</strong> <span th:text="${leadId}">0</span> · <strong>Telefone:</strong> <span th:text="${leadPhone}">-</span></p>
+
+        <p class="flash-msg" th:if="${status == 'sent'}">Mensagem enviada com sucesso.</p>
+        <p class="flash-msg" th:if="${status == 'error'}">Falha ao enviar mensagem. Veja Eventos/Logs.</p>
+        <p class="flash-msg" th:if="${status == 'missing_credentials'}">Credenciais WhatsApp ausentes no ambiente.</p>
+        <p class="flash-msg" th:if="${status == 'no_phone'}">Lead sem telefone normalizado para envio.</p>
+        <p class="flash-msg" th:if="${status == 'empty'}">Digite uma mensagem antes de enviar.</p>
+
+        <div class="conversation-feed" th:if="${messages != null and !messages.isEmpty()}">
+            <article th:each="m : ${messages}" th:class="|conversation-msg conversation-msg--${m.direction}|">
+                <header>
+                    <strong th:text="${m.direction}">OUTBOUND</strong>
+                    <span th:text="${m.type}">TYPE</span>
+                    <span th:text="${m.createdAt}">-</span>
+                </header>
+                <p th:text="${m.text}">...</p>
+            </article>
+        </div>
+        <p th:if="${messages == null or messages.isEmpty()}">Sem mensagens WhatsApp para este lead ainda.</p>
+
+        <form method="post" th:action="|/conversations/${leadId}/send|" class="conversation-send-form">
+            <label for="message">Mensagem manual (janela de 24h)</label>
+            <textarea id="message" name="message" rows="4" maxlength="1000" placeholder="Digite sua mensagem..." required></textarea>
+            <button type="submit" class="button">Enviar mensagem</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

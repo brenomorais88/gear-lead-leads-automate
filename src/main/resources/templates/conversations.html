@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{base :: head}"></head>
+<body>
+<header th:replace="~{base :: header}"></header>
+<nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
+<main class="conversations-main">
+    <section>
+        <h1 th:text="${title}">Conversas</h1>
+        <form method="get" action="/conversations" class="conversations-filter">
+            <input type="search" name="q" th:value="${q}" placeholder="buscar por loja/telefone"/>
+            <button type="submit" class="button button-small">Buscar</button>
+        </form>
+        <div class="table-wrap" th:if="${threads != null and !threads.isEmpty()}">
+            <table class="preview-table conversations-table">
+                <thead>
+                <tr>
+                    <th>Lead</th>
+                    <th>Telefone</th>
+                    <th>Última mensagem</th>
+                    <th>Tipo</th>
+                    <th>Data/hora</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${threads}">
+                    <td>
+                        <strong th:text="${t.title}">Loja</strong><br/>
+                        <small th:text="${t.razaoSocial}">Razão social</small>
+                    </td>
+                    <td th:text="${t.telefone}">-</td>
+                    <td class="conversations-preview" th:text="${t.preview}">-</td>
+                    <td th:text="${t.lastType}">-</td>
+                    <td th:text="${t.lastAt}">-</td>
+                    <td><a th:href="|/conversations/${t.leadId}|" class="button button-small button-secondary">Abrir</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p th:if="${threads == null or threads.isEmpty()}">Nenhuma conversa encontrada.</p>
+    </section>
+</main>
+</body>
+</html>

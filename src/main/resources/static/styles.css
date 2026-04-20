@@ -777,6 +777,73 @@ a.leads-row-link:hover {
     background: #fdecea;
 }
 
+.conversations-main,
+.conversation-main {
+    max-width: 100%;
+}
+
+.conversations-filter {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1rem;
+}
+
+.conversations-filter input[type="search"] {
+    min-width: 18rem;
+}
+
+.conversations-table {
+    min-width: 64rem;
+}
+
+.conversations-preview {
+    max-width: 28rem;
+}
+
+.conversation-feed {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.conversation-msg {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    background: #fafafa;
+}
+
+.conversation-msg header {
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.conversation-msg--INBOUND {
+    border-left: 4px solid #2e7d32;
+    background: #edf7ee;
+}
+
+.conversation-msg--OUTBOUND {
+    border-left: 4px solid #1565c0;
+    background: #edf4fb;
+}
+
+.conversation-send-form {
+    margin-top: 1rem;
+    border-top: 1px solid #eee;
+    padding-top: 0.8rem;
+}
+
+.conversation-send-form textarea {
+    width: 100%;
+    max-width: 46rem;
+    font-family: inherit;
+}
+
 .lead-detail-main {
     max-width: 52rem;
 }
