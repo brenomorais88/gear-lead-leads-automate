@@ -365,6 +365,32 @@ class WhatsAppBackendIntegrationTest {
     }
 
     @Test
+    fun dispatch_respectsGlobalMinDelayBetweenSends() = runBlocking {
+        val repo = testWhatsAppSettingsRepository(
+            dailySendLimit = 10,
+            sendDelayMinMinutes = 5,
+            sendDelayMaxMinutes = 5,
+        )
+        val appConfig = testWhatsAppAppConfig(repository = repo)
+        val body = """{"messaging_product":"whatsapp","messages":[{"id":"wamid.DELAY"}]}"""
+        val bundle = buildBundle(appConfig, body)
+        val l1 = insertLead("10101010000110", "11999990001", "Delay A")
+        val l2 = insertLead("20202020000120", "11999990002", "Delay B")
+        val batchId = batchRepo.insertBatch(2)
+        batchRepo.linkLeads(batchId, listOf(l1, l2))
+        bundle.prepare.prepare(batchId)
+        bundle.sendBatch.scheduleBatchSend(batchId)
+
+        val now = LocalDateTime.now()
+        campaignRepo.findByBatchId(batchId).forEach {
+            campaignRepo.setScheduledAt(it.id, now, now)
+        }
+
+        assertTrue(bundle.processor.processNextEligible(SendTrigger.WORKER))
+        assertTrue(!bundle.processor.processNextEligible(SendTrigger.WORKER))
+    }
+
+    @Test
     fun webhook_statusAndInbound_updateCampaignAndLead() {
         val bundle = buildBundle(testWhatsAppAppConfig(), "{}")
         val leadId = insertLead("66666666000138", "11933332222", "Inbound Loja")

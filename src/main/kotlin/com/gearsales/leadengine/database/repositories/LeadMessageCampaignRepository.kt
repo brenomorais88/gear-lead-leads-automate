@@ -193,6 +193,15 @@ class LeadMessageCampaignRepository {
             .count()
     }
 
+    fun findLatestSuccessfulSentAt(): LocalDateTime? = dbQuery {
+        LeadMessageCampaignsTable.select(LeadMessageCampaignsTable.sentAt)
+            .where { LeadMessageCampaignsTable.sentAt.isNotNull() }
+            .orderBy(LeadMessageCampaignsTable.sentAt, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.get(LeadMessageCampaignsTable.sentAt)
+    }
+
     fun findPendingByBatchId(batchId: Long): List<LeadMessageCampaignRecord> = dbQuery {
         val bid = EntityID(batchId, DailyBatchesTable)
         LeadMessageCampaignsTable.selectAll()

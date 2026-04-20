@@ -22,6 +22,8 @@ class CampaignDispatchProcessor(
 
     @Volatile
     private var lastOutsideWindowLogAtMs: Long = 0L
+    @Volatile
+    private var lastDelayLogAtMs: Long = 0L
 
     suspend fun processNextEligible(trigger: SendTrigger): Boolean {
         val eff = whatsappConfig.effective()
@@ -51,6 +53,26 @@ class CampaignDispatchProcessor(
             return false
         }
         val staleBefore = now.minusSeconds(eff.processingStaleSeconds)
+
+        if (eff.sendDelayMinMinutes > 0) {
+            val latestSentAt = campaignRepository.findLatestSuccessfulSentAt()
+            if (latestSentAt != null) {
+                val earliestNext = latestSentAt.plusMinutes(eff.sendDelayMinMinutes.toLong())
+                if (now.isBefore(earliestNext)) {
+                    val t = System.currentTimeMillis()
+                    if (t - lastDelayLogAtMs > 30_000L) {
+                        log.info(
+                            "WA dispatch: aguardando delay mínimo ({} min). Próximo envio após {}",
+                            eff.sendDelayMinMinutes,
+                            earliestNext,
+                        )
+                        lastDelayLogAtMs = t
+                    }
+                    return false
+                }
+            }
+        }
+
         val campaignId = campaignRepository.tryClaimNextDispatchableCampaign(now, staleBefore) ?: return false
 
         try {
