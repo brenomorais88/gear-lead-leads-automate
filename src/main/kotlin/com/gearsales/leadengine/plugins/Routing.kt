@@ -3,6 +3,7 @@ package com.gearsales.leadengine.plugins
 import com.gearsales.leadengine.web.routes.batchRoutes
 import com.gearsales.leadengine.web.routes.campaignsWebRoutes
 import com.gearsales.leadengine.web.routes.dashboardRoutes
+import com.gearsales.leadengine.web.routes.eventsRoutes
 import com.gearsales.leadengine.web.routes.importRoutes
 import com.gearsales.leadengine.web.routes.leadRoutes
 import com.gearsales.leadengine.web.routes.whatsAppEngineRoutes
@@ -23,6 +24,7 @@ fun Application.configureRouting() {
         }
         dashboardRoutes()
         importRoutes()
+        eventsRoutes()
         leadRoutes()
         batchRoutes()
         campaignsWebRoutes()

@@ -503,6 +503,31 @@ class LeadMessageCampaignRepository {
             ?.toRecord()
     }
 
+    /**
+     * Fallback para inbound sem `context.id`: escolhe a campanha pós-envio mais recente dentre leads
+     * com telefone normalizado em [phoneCandidates].
+     */
+    fun findLatestOutboundCampaignByPhoneCandidates(phoneCandidates: List<String>): LeadMessageCampaignRecord? = dbQuery {
+        if (phoneCandidates.isEmpty()) return@dbQuery null
+        val statuses = listOf(
+            LeadCampaignStatus.SENT.name,
+            LeadCampaignStatus.DELIVERED.name,
+            LeadCampaignStatus.READ.name,
+        )
+        (LeadMessageCampaignsTable innerJoin LeadsTable)
+            .selectAll()
+            .where {
+                (LeadsTable.telefoneNormalizado inList phoneCandidates) and
+                    (LeadMessageCampaignsTable.status inList statuses) and
+                    LeadMessageCampaignsTable.respondedAt.isNull()
+            }
+            .orderBy(LeadMessageCampaignsTable.updatedAt, SortOrder.DESC)
+            .orderBy(LeadMessageCampaignsTable.id, SortOrder.DESC)
+            .limit(1)
+            .firstOrNull()
+            ?.toRecord()
+    }
+
     fun markCampaignResponded(campaignId: Long, respondedAt: LocalDateTime, now: LocalDateTime): Boolean = dbQuery {
         val n = LeadMessageCampaignsTable.update({ LeadMessageCampaignsTable.id eq campaignId }) {
             it[LeadMessageCampaignsTable.status] = LeadCampaignStatus.RESPONDED.name

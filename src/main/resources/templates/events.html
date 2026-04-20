@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{base :: head}"></head>
+<body>
+<header th:replace="~{base :: header}"></header>
+<nav th:replace="~{base :: nav}"></nav>
+<th:block th:replace="~{base :: wa-engine-strip}"/>
+<main class="events-main">
+    <section>
+        <h1 th:text="${title}">Eventos</h1>
+        <p class="events-meta">
+            Total: <strong th:text="${total}">0</strong>
+            <span th:if="${totalPages != null and totalPages > 0}">
+                — página <strong th:text="${page + 1}">1</strong> de <strong th:text="${totalPages}">1</strong>
+            </span>
+        </p>
+
+        <div class="events-pagination" th:if="${hasPrev or hasNext}">
+            <a th:if="${hasPrev}" class="button button-small button-secondary" th:href="|/events?page=${prevPage}|">Anterior</a>
+            <a th:if="${hasNext}" class="button button-small button-secondary" th:href="|/events?page=${nextPage}|">Próxima</a>
+        </div>
+
+        <div class="table-wrap" th:if="${events != null and !events.isEmpty()}">
+            <table class="preview-table events-table">
+                <thead>
+                <tr>
+                    <th>Data/hora</th>
+                    <th>Nível</th>
+                    <th>Categoria</th>
+                    <th>Resumo</th>
+                    <th>HTTP</th>
+                    <th>Detalhes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="ev : ${events}">
+                    <td class="events-cell-date" th:text="${ev.createdAt}">-</td>
+                    <td>
+                        <span th:class="|events-level events-level--${ev.level}|" th:text="${ev.level}">INFO</span>
+                    </td>
+                    <td th:text="${ev.category}">-</td>
+                    <td class="events-cell-summary" th:text="${ev.summary}" th:title="${ev.summary}">-</td>
+                    <td class="events-cell-http">
+                        <span th:if="${ev.httpMethod != null}" th:text="${ev.httpMethod}">GET</span>
+                        <span th:if="${ev.httpPath != null}" th:text="| ${ev.httpPath}|"> /path</span>
+                        <span th:if="${ev.httpStatus != null}" th:text="| (${ev.httpStatus})|"> (200)</span>
+                        <span th:if="${ev.httpMethod == null and ev.httpPath == null and ev.httpStatus == null}">—</span>
+                    </td>
+                    <td class="events-cell-details" th:text="${ev.details != null ? ev.details : '—'}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p th:if="${events == null or events.isEmpty()}">Nenhum evento registrado ainda.</p>
+    </section>
+</main>
+</body>
+</html>

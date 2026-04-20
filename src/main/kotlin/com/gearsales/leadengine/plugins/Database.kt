@@ -5,6 +5,7 @@ import com.gearsales.leadengine.database.tables.DailyBatchesTable
 import com.gearsales.leadengine.database.tables.LeadInteractionsTable
 import com.gearsales.leadengine.database.tables.LeadMessageCampaignsTable
 import com.gearsales.leadengine.database.tables.LeadsTable
+import com.gearsales.leadengine.database.tables.SystemEventsTable
 import com.gearsales.leadengine.database.tables.WhatsappSettingsTable
 import com.gearsales.leadengine.config.AppEnv
 import com.zaxxer.hikari.HikariConfig
@@ -38,6 +39,7 @@ fun Application.configureDatabase() {
             LeadInteractionsTable,
             LeadMessageCampaignsTable,
             WhatsappSettingsTable,
+            SystemEventsTable,
         )
     }
 }

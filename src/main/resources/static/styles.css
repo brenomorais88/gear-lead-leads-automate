@@ -721,6 +721,62 @@ a.leads-row-link:hover {
     text-overflow: ellipsis;
 }
 
+.events-main {
+    max-width: 100%;
+}
+
+.events-meta {
+    margin: 0.25rem 0 0.75rem;
+}
+
+.events-pagination {
+    margin: 0.6rem 0 0.8rem;
+}
+
+.events-table {
+    min-width: 72rem;
+}
+
+.events-cell-date,
+.events-cell-http {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.events-cell-summary {
+    max-width: 22rem;
+}
+
+.events-cell-details {
+    white-space: pre-wrap;
+    max-width: 30rem;
+}
+
+.events-level {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.12rem 0.35rem;
+    border-radius: 3px;
+}
+
+.events-level--INFO {
+    color: #0d47a1;
+    background: #e3f2fd;
+}
+
+.events-level--WARN {
+    color: #5d3b00;
+    background: #fff3e0;
+}
+
+.events-level--ERROR {
+    color: #7f1010;
+    background: #fdecea;
+}
+
 .lead-detail-main {
     max-width: 52rem;
 }

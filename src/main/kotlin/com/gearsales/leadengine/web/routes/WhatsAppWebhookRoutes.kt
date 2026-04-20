@@ -1,6 +1,7 @@
 package com.gearsales.leadengine.web.routes
 
 import com.gearsales.leadengine.plugins.whatsappWebhookService
+import com.gearsales.leadengine.plugins.SystemEvents
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookRoot
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -39,6 +40,11 @@ private suspend fun ApplicationCall.handleWebhookPayload() {
         application.whatsappWebhookService().handlePayload(body)
     } catch (e: Throwable) {
         webhookLog.warn("webhook POST ignored or failed: {}", e.message)
+        SystemEvents.warn(
+            category = "WHATSAPP_WEBHOOK_ERROR",
+            summary = "Falha ao processar POST de webhook",
+            details = e.message,
+        )
     }
     respond(HttpStatusCode.OK)
 }

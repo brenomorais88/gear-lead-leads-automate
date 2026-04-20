@@ -11,6 +11,7 @@ import com.gearsales.leadengine.domain.model.LeadInteractionTypes
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookInboundMessage
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookRoot
 import com.gearsales.leadengine.whatsapp.webhook.dto.WhatsAppWebhookStatusItem
+import com.gearsales.leadengine.plugins.SystemEvents
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Instant
@@ -78,6 +79,10 @@ class WhatsAppWebhookService(
                     now,
                     sentAt = eventTime,
                 )
+                SystemEvents.info(
+                    category = "WHATSAPP_STATUS",
+                    summary = "Webhook status SENT para campanha ${campaign.id}",
+                )
             }
             "delivered" -> {
                 if (current.status in SKIP_DELIVERED) return
@@ -87,6 +92,10 @@ class WhatsAppWebhookService(
                     now,
                     deliveredAt = eventTime,
                 )
+                SystemEvents.info(
+                    category = "WHATSAPP_STATUS",
+                    summary = "Webhook status DELIVERED para campanha ${campaign.id}",
+                )
             }
             "read" -> {
                 if (current.status in SKIP_READ) return
@@ -95,6 +104,10 @@ class WhatsAppWebhookService(
                     LeadCampaignStatus.READ,
                     now,
                     readAt = eventTime,
+                )
+                SystemEvents.info(
+                    category = "WHATSAPP_STATUS",
+                    summary = "Webhook status READ para campanha ${campaign.id}",
                 )
             }
             "failed" -> {
@@ -111,6 +124,11 @@ class WhatsAppWebhookService(
                     failureReason = reason,
                     failureCategoryStored = WhatsAppFailureCategory.META_API_ERROR.name,
                 )
+                SystemEvents.warn(
+                    category = "WHATSAPP_STATUS",
+                    summary = "Webhook status FAILED para campanha ${campaign.id}",
+                    details = reason,
+                )
             }
         }
     }
@@ -122,15 +140,25 @@ class WhatsAppWebhookService(
         }
         val contextWaMessageId = msg.context?.id?.trim()?.takeIf { it.isNotEmpty() }
         val contextCampaign = contextWaMessageId?.let { campaignRepository.findByWaMessageId(it) }
+        val phoneCandidates = phoneCandidatesForInbound(from)
+        val phoneCampaign =
+            if (contextCampaign == null) {
+                campaignRepository.findLatestOutboundCampaignByPhoneCandidates(phoneCandidates)
+            } else {
+                null
+            }
         val lead =
             contextCampaign?.let { campaign ->
+                leadRepository.findById(campaign.leadId)
+            } ?: phoneCampaign?.let { campaign ->
                 leadRepository.findById(campaign.leadId)
             } ?: leadRepository.findFirstMatchingWhatsAppFrom(from)
         if (lead == null) {
             log.warn(
-                "whatsapp webhook inbound: sem lead para from={} contextId={}",
+                "whatsapp webhook inbound: sem lead para from={} contextId={} candidates={}",
                 maskWaFrom(from),
                 maskWaId(contextWaMessageId),
+                phoneCandidates.size,
             )
             return
         }
@@ -142,6 +170,7 @@ class WhatsAppWebhookService(
 
         val latest =
             contextCampaign
+                ?: phoneCampaign
                 ?: campaignRepository.findLatestOutboundCampaignForLead(lead.id)
         if (latest != null && latest.status != LeadCampaignStatus.RESPONDED) {
             campaignRepository.markCampaignResponded(latest.id, eventTime, now)
@@ -166,6 +195,11 @@ class WhatsAppWebhookService(
             msg.type,
             note?.length ?: 0,
         )
+        SystemEvents.info(
+            category = "WHATSAPP_INBOUND",
+            summary = "Resposta inbound registrada para lead ${lead.id}",
+            details = note?.take(180),
+        )
     }
 
     /** Log seguro: só dígitos finais do wa_id. */
@@ -180,6 +214,18 @@ class WhatsAppWebhookService(
         if (v.isEmpty()) return "null"
         if (v.length <= 8) return "…$v"
         return "…${v.takeLast(8)}"
+    }
+
+    private fun phoneCandidatesForInbound(waFrom: String): List<String> {
+        val digits = waFrom.filter { it.isDigit() }
+        if (digits.isEmpty()) return emptyList()
+        return buildSet {
+            add(digits)
+            PhoneNormalizer.normalizeForWhatsApp(waFrom)?.let { add(it) }
+            PhoneNormalizer.normalizeForWhatsApp(digits)?.let { add(it) }
+            if (digits.length == 11) add("55$digits")
+            if (digits.length == 10) add("55$digits")
+        }.filter { it.isNotBlank() }.toList()
     }
 
     private fun extractInboundBody(msg: WhatsAppWebhookInboundMessage): String? =
